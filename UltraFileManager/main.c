@@ -7,7 +7,7 @@
 
 int main()
 {
-    analyseString("mkdisk -size~:~51200 -unit~:~k -path~:~\"/home/archivos/fase1/mis archivos/Disco3.disk\"");
+    analyseString("fdisk -type~:~L -unit~:~K -name~:~Part24 -size~:~1200 -path~:~/home/archivos/fase1/Disco2.disk -fit~:~BF\n");
     return 0;
 }
 
