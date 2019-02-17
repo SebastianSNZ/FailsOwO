@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "diskmanagement.c"
 
 /*STRUCT SPACE OwO*/
 
@@ -55,16 +56,37 @@ void deleteWhiteSpaces(char text[]);
 void removeStringLiteral(char text[]);
 Function getNewFunction(ParameterList *list);
 Function getFunction();
+void execFunction(Function func);
+int getInt(char text[]);
 
 //END OF PROTOTYPES
 
 void analyseString(char instr[1024])
 {
     ParameterList *l = getList(instr);
-    printf("YESSSSSSSS\n");
     Function f = getNewFunction(l);
     deleteParameterList(l);
-    printf("NOOOOOOOOOO\n");
+    execFunction(f);
+
+}
+
+void execFunction(Function func)
+{
+    if (!strncasecmp(func.title, "mkdisk", 6))
+    {
+        createNewDisk(getInt(func.size), func.fit[0], func.unit[0], func.path);
+    }
+}
+
+int getInt(char text[]) {
+    int val = 0;
+    for(int i = 0; text[i] != '\0'; i++)
+    {
+        if (text[i] < '0' || text[i] > '9') return -1;
+        val = val * 10;
+        val = val + (text[i] - 48);
+    }
+    return val;
 }
 
 

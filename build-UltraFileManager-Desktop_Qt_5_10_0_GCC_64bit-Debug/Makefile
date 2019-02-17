@@ -641,7 +641,8 @@ compiler_clean:
 
 ####### Compile
 
-main.o: ../UltraFileManager/main.c ../UltraFileManager/interpreter.c
+main.o: ../UltraFileManager/main.c ../UltraFileManager/interpreter.c \
+		../UltraFileManager/diskmanagement.c
 	$(CC) -c $(CFLAGS) $(INCPATH) -o main.o ../UltraFileManager/main.c
 
 ####### Install

@@ -3,11 +3,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 #include "interpreter.c"
 
 int main()
 {
-    analyseString("fdisk -type~:~L -unit~:~K -name~:~Part24 -size~:~1200 -path~:~/home/archivos/fase1/Disco2.disk -fit~:~BF\n");
+    srand(time(NULL));
+    analyseString("mkdisk -size~:~50 -unit~:~M -path~:~/home/archivos/fase1/Disco1.disk");
     return 0;
 }
 
