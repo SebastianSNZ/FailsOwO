@@ -48,6 +48,7 @@ typedef struct function Function;
 void analyseString(char instr[1024]);
 void deleteParameterList(ParameterList *list);
 void deleteParameter(ParameterDuo *par);
+void partitonManagerFunction(Function func);
 ParameterList *getList(char instr[1024]);
 ParameterDuo *newParameter(char name[64], char value[512]);
 ParameterList *newParameterList(char name[64]);
@@ -75,7 +76,33 @@ void execFunction(Function func)
     if (!strncasecmp(func.title, "mkdisk", 6))
     {
         createNewDisk(getInt(func.size), func.fit[0], func.unit[0], func.path);
+        return;
     }
+    if (!strncasecmp(func.title, "rmdisk", 6))
+    {
+        deleteDisk(func.path);
+        return;
+    }
+    if (!strncasecmp(func.title, "fdisk", 6))
+    {
+        partitonManagerFunction(func);
+        return;
+    }
+}
+
+void partitonManagerFunction(Function func)
+{
+    if (func.delete[0] != '\0')
+    {
+        printf("Eliminar particion \n");
+        return;
+    }
+    if (func.add[0] != '\0')
+    {
+        printf("Agregar espacio particion\n");
+        return;
+    }
+    addPartition(getInt(func.size), func.unit[0], func.type[0], func.fit[0], func.name, func.path);
 }
 
 int getInt(char text[]) {
@@ -216,6 +243,16 @@ Function getFunction()
     strcpy(fun.name, "");
     strcpy(fun.add, "");
     strcpy(fun.id, "");
+    /*fun.title = {0};
+    fun.size = {0};
+    fun.fit = {0};
+    fun.unit = {0};
+    fun.path = {0};
+    fun.type = {0};
+    fun.delete = {0};
+    fun.name = {0};
+    fun.add = {0};
+    fun.id = {0};*/
     fun.errorParameter = 0;
     return fun;
 }
