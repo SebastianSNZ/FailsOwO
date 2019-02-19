@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+#include <limits.h>
 
 //STRUCTS IMPORTANTES
 
@@ -34,6 +35,18 @@ struct FREE_SPACE
     struct FREE_SPACE *next;
 };
 
+struct EXTENDED_BOOT_RECORD
+{
+    char status;
+    char fit;
+    int start;
+    int size;
+    int next;
+    char name[32];
+};
+
+typedef struct EXTENDED_BOOT_RECORD ExtendedBootRecord;
+
 typedef struct FREE_SPACE FreeSpaceBlock;
 
 //FIN STRUCTS
@@ -54,8 +67,12 @@ FreeSpaceBlock *newFreeSpaceBlock(int start, int size);
 void addFreeSpaceBlock(FreeSpaceBlock **aux, int start, int size);
 int getNextPartition(Partition parts[], int ptr);
 void deleteFreeSpaceBlock(FreeSpaceBlock *aux);
-
-
+int getAddressWithName(Partition parts[], char name[]);
+int getAddresToAdd(FreeSpaceBlock *list, int currentSize, char fit);
+int getWithBestFit(FreeSpaceBlock *list, int currentSize);
+int getWithWorstFit(FreeSpaceBlock *list, int currentSize);
+int getWithFirstFit(FreeSpaceBlock *list, int currentSize);
+void deletePartition(char path[], char name[], char value[]);
 //FIN PROTOTIPOS
 
 
@@ -75,6 +92,14 @@ void createNewDisk(int size, char fit, char unit, char path[512])
     }
     fseek(diskFile, 0, SEEK_SET);
     fwrite(&mbr, sizeof(MasterBootRecord), 1, diskFile);
+    char arr[1024] = {0};
+    int initial = sizeof(MasterBootRecord);
+    int final = mbr.size + initial;
+    for (int i = initial; i < final; i += 1024)
+    {
+        fseek(diskFile, i, SEEK_SET);
+        fwrite(arr, sizeof(char) * 1024, 1, diskFile);
+    }
     fclose(diskFile);
 }
 
@@ -145,7 +170,7 @@ void addPartition(int size, char unit, char type, char fit, char name[], char pa
     if (unit == '0') unit = 'K';
     if (type == '\0') type = 'P';
     int realSize = getRealSize(unit, size);
-    FILE *diskFile = fopen(path, "rb");
+    FILE *diskFile = fopen(path, "rb+");
     if (!diskFile)
     {
         printf("Error, el archivo %s no pudo abrirse para su lectura.\n", path);
@@ -154,25 +179,48 @@ void addPartition(int size, char unit, char type, char fit, char name[], char pa
     MasterBootRecord mbr;
     fseek(diskFile, 0, SEEK_SET);
     fread(&mbr, sizeof(MasterBootRecord), 1, diskFile);
-    fclose(diskFile);
+    if (type == 'L' || type == 'l') {
+        //LOGICA
+        return;
+    }
     int address = getAddresToNewPartition(mbr, type);
     if (address < 0)
     {
-        printf("Error, no hay espacio en el disco para otra particion en %s.\n", path);
+        printf("Error, no hay posición disponible para otra particion en %s.\n", path);
         return;
     }
-    //VERIFICAR NOMBRE
+    if (getAddressWithName(mbr.partitions, name) >= 0)
+    {
+        printf("Error, ya existe una particion %s en %s.\n", name, path);
+        return;
+    }
     FreeSpaceBlock *fs = getFreeSpaceBlocks(mbr);
+    int pos = getAddresToAdd(fs, realSize, mbr.fit);
+    deleteFreeSpaceBlock(fs);
+    if (pos < 0)
+    {
+        printf("Error, no hay espacio disponible para otra particion en %s.\n", path);
+        return;
+    }
     mbr.partitions[address].status = '1';
     mbr.partitions[address].fit = fit;
     strcpy(mbr.partitions[address].name, name);
-    mbr.partitions[address].start = fs->start;
+    mbr.partitions[address].start = pos;
     mbr.partitions[address].size = realSize;
     mbr.partitions[address].type = type;
-    FILE *toWrite = fopen(path, "wb");
-    fseek(toWrite, 0, SEEK_SET);
-    fwrite(&mbr, sizeof(MasterBootRecord), 1, toWrite);
-    fclose(toWrite);
+    fseek(diskFile, 0, SEEK_SET);
+    fwrite(&mbr, sizeof(MasterBootRecord), 1, diskFile);
+    //SI ES EXTENDIDA HAY QUE METERLE EL COSO
+    fclose(diskFile);
+}
+
+int getAddressWithName(Partition parts[], char name[])
+{
+    for (int i = 0; i < 4; i++)
+    {
+        if (!strcmp(parts[i].name, name)) return i;
+    }
+    return -1;
 }
 
 int getAddresToNewPartition(MasterBootRecord mbr, char type)
@@ -288,4 +336,103 @@ void deleteFreeSpaceBlock(FreeSpaceBlock *aux)
     if (aux == NULL) return;
     deleteFreeSpaceBlock(aux->next);
     free(aux);
+}
+
+int getAddresToAdd(FreeSpaceBlock *list, int currentSize, char fit)
+{
+    if (fit == 'F' || fit == 'f')
+    {
+        return getWithFirstFit(list, currentSize);
+    }
+    if (fit == 'W' || fit == 'w')
+    {
+        return getWithWorstFit(list, currentSize);
+    }
+    return getWithBestFit(list, currentSize);
+}
+
+int getWithBestFit(FreeSpaceBlock *list, int currentSize)
+{
+    int x = INT_MAX;
+    int y = -1;
+    while (list != NULL)
+    {
+        if (list->size > currentSize && list->size - currentSize < x)
+        {
+            x = list->size - currentSize;
+            y = list->start;
+        }
+        list = list->next;
+    }
+    return y;
+}
+
+int getWithWorstFit(FreeSpaceBlock *list, int currentSize)
+{
+    int x = -1;
+    int y = -1;
+    while (list != NULL)
+    {
+        if (list->size > currentSize && list->size > x)
+        {
+            x = list->size;
+            y = list->start;
+        }
+        list = list->next;
+    }
+    return y;
+}
+
+int getWithFirstFit(FreeSpaceBlock *list, int currentSize)
+{
+    while (list != NULL)
+    {
+        if (list->size > currentSize) return list->start;
+        list = list->next;
+    }
+    return -1;
+}
+
+void deletePartition(char path[], char name[], char value[])
+{
+    FILE *toRead = fopen(path, "rb+");
+    if (!toRead)
+    {
+        printf("Error, el archivo %s no pudo abrirse para su lectura\n", path);
+        return;
+    }
+    MasterBootRecord mbr;
+    fseek(toRead, 0, SEEK_SET);
+    fread(&mbr, sizeof(MasterBootRecord), 1, toRead);
+    int address = getAddressWithName(mbr.partitions, name);
+    if (address < 0)
+    {
+        printf("Error, el disco %s no posee una particion %s.\n", path, name);
+        return;
+    }
+    if (mbr.partitions[address].type == 'L' || mbr.partitions[address].type == 'l')
+    {
+        //eliminar logica
+        return;
+    }
+    if (!strncasecmp(value, "full", 4))
+    {
+        int initial = mbr.partitions[address].start;
+        int final = initial + mbr.partitions[address].size;
+        for(int i = initial; i < final; i++)
+        {
+            char c = '\0';
+            fseek(toRead, i, SEEK_SET);
+            fwrite(&c, sizeof(char), 1, toRead);
+        }
+    }
+    mbr.partitions[address].fit = 'F';
+    mbr.partitions[address].size = 0;
+    mbr.partitions[address].start = -1;
+    mbr.partitions[address].status = 0;
+    mbr.partitions[address].type = 'P';
+    strcpy(mbr.partitions[address].name, "");
+    fseek(toRead, 0, SEEK_SET);
+    fwrite(&mbr, sizeof(MasterBootRecord), 1, toRead);
+    fclose(toRead);
 }

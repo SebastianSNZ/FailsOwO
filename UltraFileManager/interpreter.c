@@ -88,32 +88,43 @@ void execFunction(Function func)
         partitonManagerFunction(func);
         return;
     }
+    if (func.title[0] == '\0')
+    {
+        return;
+    }
 }
 
 void partitonManagerFunction(Function func)
 {
-    if (func.delete[0] != '\0')
-    {
-        printf("Eliminar particion \n");
-        return;
-    }
     if (func.add[0] != '\0')
     {
         printf("Agregar espacio particion\n");
+        return;
+    }
+    if (func.delete[0] != '\0')
+    {
+        deletePartition(func.path, func.name, func.delete);
         return;
     }
     addPartition(getInt(func.size), func.unit[0], func.type[0], func.fit[0], func.name, func.path);
 }
 
 int getInt(char text[]) {
+    int negative = 1;
     int val = 0;
-    for(int i = 0; text[i] != '\0'; i++)
+    int i = 0;
+    if (text[0] == '-')
+    {
+        i++;
+        negative = -1;
+    }
+    for(; text[i] != '\0'; i++)
     {
         if (text[i] < '0' || text[i] > '9') return -1;
         val = val * 10;
         val = val + (text[i] - 48);
     }
-    return val;
+    return val*negative;
 }
 
 
@@ -148,6 +159,12 @@ ParameterList *getList(char instr[1024])
         while (instruction[stPointer] != '~' && instruction [stPointer] != '\0')
             stPointer++;
         stPointer++;
+        if (instruction[stPointer] == '-' )
+        {
+            char auxiliarCharacter[2] = {instruction[stPointer], '\0'};
+            strcat(paramValue, auxiliarCharacter);
+            stPointer++;
+        }
         while (instruction[stPointer] != '-' && instruction [stPointer] != '\0')
         {
             char auxiliarCharacter[2] = {instruction[stPointer], '\0'};
@@ -162,6 +179,7 @@ ParameterList *getList(char instr[1024])
 ParameterList *newParameterList(char name[64])
 {
     ParameterList *newList = (ParameterList*) malloc(sizeof(ParameterList));
+    newList->firstValue = NULL;
     strcpy(newList->commandName, name);
     return newList;
 }
@@ -220,6 +238,7 @@ Function getNewFunction(ParameterList *list)
         else if (!strncasecmp(aux->parameterName, "name", 4)) strcpy(func.name, aux->parameterValue);
         else if (!strncasecmp(aux->parameterName, "add", 3)) strcpy(func.add, aux->parameterValue);
         else if (!strncasecmp(aux->parameterName, "id", 2)) strcpy(func.id, aux->parameterValue);
+        else if ((aux->parameterName)[0] == '#');
         else
         {
             func.errorParameter = 1;
@@ -243,16 +262,6 @@ Function getFunction()
     strcpy(fun.name, "");
     strcpy(fun.add, "");
     strcpy(fun.id, "");
-    /*fun.title = {0};
-    fun.size = {0};
-    fun.fit = {0};
-    fun.unit = {0};
-    fun.path = {0};
-    fun.type = {0};
-    fun.delete = {0};
-    fun.name = {0};
-    fun.add = {0};
-    fun.id = {0};*/
     fun.errorParameter = 0;
     return fun;
 }
