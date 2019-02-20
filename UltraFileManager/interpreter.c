@@ -98,7 +98,7 @@ void partitonManagerFunction(Function func)
 {
     if (func.add[0] != '\0')
     {
-        printf("Agregar espacio particion\n");
+        addSizePartition(getInt(func.add), func.unit[0], func.path, func.name);
         return;
     }
     if (func.delete[0] != '\0')

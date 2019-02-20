@@ -13,9 +13,12 @@ int main()
     analyseString("fdisk -type~:~P -unit~:~K -name~:~Part1 -size~:~300 -path~:~/home/archivos/fase1/Disco1.disk -fit~:~BF");
     analyseString("fdisk -type~:~E -unit~:~K -name~:~Part2 -size~:~200 -path~:~/home/archivos/fase1/Disco1.disk -fit~:~BF");
     analyseString("fdisk -type~:~P -unit~:~K -name~:~Part3 -size~:~400 -path~:~/home/archivos/fase1/Disco1.disk -fit~:~BF");
-    analyseString("fdisk -delete~:~fast -name~:~Part2 -path~:~/home/archivos/fase1/Disco1.disk");
-    analyseString("fdisk -type~:~P -unit~:~K -name~:~Part4 -size~:~100 -path~:~/home/archivos/fase1/Disco1.disk -fit~:~BF");
-    analyseString("fdisk -type~:~E -unit~:~K -name~:~Part5 -size~:~50 -path~:~/home/archivos/fase1/Disco1.disk -fit~:~BF");
+    analyseString("fdisk -type~:~L -unit~:~K -name~:~LogicalPart4 -size~:~30 -path~:~/home/archivos/fase1/Disco1.disk -fit~:~BF");
+    analyseString("fdisk -type~:~L -unit~:~K -name~:~LogicalPart5 -size~:~35 -path~:~/home/archivos/fase1/Disco1.disk -fit~:~BF");
+    analyseString("fdisk -type~:~L -unit~:~K -name~:~LogicalPart6 -size~:~40 -path~:~/home/archivos/fase1/Disco1.disk -fit~:~BF");
+    //analyseString("fdisk -delete~:~full -name~:~LogicalPart5 -path~:~/home/archivos/fase1/Disco1.disk");
+    analyseString("fdisk -add~:~-20 -unit~:~K -path~:~/home/archivos/fase1/Disco1.disk -name~:~LogicalPart4");
+    analyseString("fdisk -type~:~L -unit~:~K -name~:~LogicalPart7 -size~:~15 -path~:~/home/archivos/fase1/Disco1.disk -fit~:~BF");
     return 0;
 
 }
