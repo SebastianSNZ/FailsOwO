@@ -16,9 +16,13 @@ int main()
     analyseString("fdisk -type~:~L -unit~:~K -name~:~LogicalPart4 -size~:~30 -path~:~/home/archivos/fase1/Disco1.disk -fit~:~BF");
     analyseString("fdisk -type~:~L -unit~:~K -name~:~LogicalPart5 -size~:~35 -path~:~/home/archivos/fase1/Disco1.disk -fit~:~BF");
     analyseString("fdisk -type~:~L -unit~:~K -name~:~LogicalPart6 -size~:~40 -path~:~/home/archivos/fase1/Disco1.disk -fit~:~BF");
-    //analyseString("fdisk -delete~:~full -name~:~LogicalPart5 -path~:~/home/archivos/fase1/Disco1.disk");
     analyseString("fdisk -add~:~-20 -unit~:~K -path~:~/home/archivos/fase1/Disco1.disk -name~:~LogicalPart4");
     analyseString("fdisk -type~:~L -unit~:~K -name~:~LogicalPart7 -size~:~15 -path~:~/home/archivos/fase1/Disco1.disk -fit~:~BF");
+    analyseString("mount -name~:~\"Part1\" -path~:~/home/archivos/fase1/Disco1.disk");
+    analyseString("mount -name~:~\"Part2\" -path~:~/home/archivos/fase1/Disco1.disk");
+    analyseString("mount -name~:~\"LogicalPart5\" -path~:~/home/archivos/fase1/Disco1.disk");
+    analyseString("unmount -id~:~vda0");
+    analyseString("rep -id~:~vda1 -Path~:~/home/archivos/fase1/Disco1.png -name~:~disk");
     return 0;
 
 }

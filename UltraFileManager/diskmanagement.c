@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include <limits.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 //STRUCTS IMPORTANTES
 
@@ -49,8 +52,35 @@ typedef struct EXTENDED_BOOT_RECORD ExtendedBootRecord;
 
 typedef struct FREE_SPACE FreeSpaceBlock;
 
+struct DISK_FILE_NODE
+{
+    char letter;
+    char path[512];
+    int count;
+    struct DISK_FILE_NODE *next;
+};
+
+typedef struct DISK_FILE_NODE FileDiskNode;
+
+struct PARTITION_NODE
+{
+    char name[32];
+    FileDiskNode *filePtr;
+    char id[32];
+    struct PARTITION_NODE *next;
+};
+
+typedef struct PARTITION_NODE PartitionNode;
+
 //FIN STRUCTS
 
+//VARIABLES GLOBALES
+
+FileDiskNode *diskList = NULL;
+PartitionNode *partList = NULL;
+char currentLetter = 'a';
+
+//FIN VARIABLES GLOBALES
 
 //PROTOTIPOS
 
@@ -79,6 +109,20 @@ void deletePartition(char path[], char name[], char value[]);
 void addSizePartition(int add, char unit, char path[], char name[]);
 ExtendedBootRecord getEbr(char name[]);
 FreeSpaceBlock *getLogicalFreeSpace(ExtendedBootRecord first, FILE *writeFile, int totalSize);
+FileDiskNode *newFileDiskNode(char letter, char path[]);
+void addNewFileDiskNode(FileDiskNode **aux, char path[]);
+FileDiskNode *getFileDiskNode(FileDiskNode *aux, char path[]);
+PartitionNode *newPartitionNode(char name[], char id[], FileDiskNode *ptr);
+void addNewPartitionNode(PartitionNode **aux, char name[], char id[], FileDiskNode *ptr);
+PartitionNode *getPartitionNode(PartitionNode *aux, char id[]);
+void mountPartition(char path[], char name[]);
+void deletePartitionNode(PartitionNode **aux, char id[]);
+void unMountPartition(char id[]);
+void getDirectory(char text[]);
+void report(char id[], char path[], char name[]);
+void reportDisk(char filePath[], char destiny[]);
+void reportMbr(char filePath[], char destiny[]);
+
 //FIN PROTOTIPOS
 
 
@@ -89,12 +133,18 @@ void createNewDisk(int size, char fit, char unit, char path[512])
     if (!paramatersDiskCreation(size, fit, unit)) return;
     if (fit == '\0') fit = 'F';
     if (unit == '0') unit = 'M';
+    char dir[512] = {0};
+    char command[512];
+    strcpy(dir, path);
+    getDirectory(dir);
+    strcat(command, "mkdir -p -m a=rwx ");
+    strcat(command, dir);
+    system(command);
     MasterBootRecord mbr = getMbr(size, fit, unit);
     FILE *diskFile = fopen(path, "wb");
     if (diskFile == NULL)
     {
         printf("Error, el archivo %s no pudo abrirse para su escritura.\n", path);
-        fclose(diskFile);
         return;
     }
     fseek(diskFile, 0, SEEK_SET);
@@ -108,6 +158,16 @@ void createNewDisk(int size, char fit, char unit, char path[512])
         fwrite(arr, sizeof(char) * 1024, 1, diskFile);
     }
     fclose(diskFile);
+}
+
+void getDirectory(char text[])
+{
+    for (int i = 512; i >= 0; i--)
+    {
+        if (text[i] == '/')
+            return;
+        text[i] = '\0';
+    }
 }
 
 int paramatersDiskCreation(int size, char fit, char unit)
@@ -440,6 +500,7 @@ void addLogicalPartition(MasterBootRecord mbr, int size, char unit, char fit, ch
     FreeSpaceBlock *fs = getLogicalFreeSpace(firstEbr, writeFile, dSize);
 
     int direction = getAddresToAdd(fs, realSize, mbr.partitions[address].fit);
+    deleteFreeSpaceBlock(fs);
     ExtendedBootRecord prev;
     fseek(writeFile, direction, SEEK_SET);
     fread(&prev, sizeof(ExtendedBootRecord), 1, writeFile);
@@ -454,8 +515,8 @@ void addLogicalPartition(MasterBootRecord mbr, int size, char unit, char fit, ch
     fwrite(&prev, sizeof(ExtendedBootRecord), 1, writeFile);
     fseek(writeFile, newEBR.start, SEEK_SET);
     fwrite(&newEBR, sizeof(ExtendedBootRecord), 1, writeFile);
-    probe(firstEbr, writeFile);
-    printf("A\n\n");
+    //probe(firstEbr, writeFile);
+    //printf("A\n\n");
 }
 
 FreeSpaceBlock *getLogicalFreeSpace(ExtendedBootRecord first, FILE *writeFile, int totalSize)
@@ -674,3 +735,263 @@ ExtendedBootRecord getEbr(char name[])
 }
 
 
+FileDiskNode *newFileDiskNode(char letter, char path[])
+{
+    FileDiskNode *newFD = (FileDiskNode *) malloc(sizeof(FileDiskNode));
+    newFD->letter = letter;
+    strcpy(newFD->path, path);
+    newFD->next = NULL;
+    newFD->count = 0;
+    return newFD;
+}
+
+void addNewFileDiskNode(FileDiskNode **aux, char path[])
+{
+    if ((*aux) == NULL)
+    {
+        (*aux) = newFileDiskNode(currentLetter, path);
+        currentLetter++;
+        return;
+    }
+    FileDiskNode *piv = *aux;
+    while (piv->next != NULL) piv = piv->next;
+    piv->next = newFileDiskNode(currentLetter, path);
+    currentLetter++;
+}
+
+FileDiskNode *getFileDiskNode(FileDiskNode *aux, char path[])
+{
+    while (aux != NULL)
+    {
+        if (!strcmp(aux->path, path)) return aux;
+        aux = aux->next;
+    }
+    return NULL;
+}
+
+
+PartitionNode *newPartitionNode(char name[], char id[], FileDiskNode *ptr)
+{
+    PartitionNode *pNode = (PartitionNode *) malloc(sizeof(PartitionNode));
+    strcpy(pNode->id, id);
+    strcpy(pNode->name, name);
+    pNode->filePtr = ptr;
+    pNode->next = NULL;
+    return pNode;
+}
+
+
+void addNewPartitionNode(PartitionNode **aux, char name[], char id[], FileDiskNode *ptr)
+{
+    if ((*aux) == NULL)
+    {
+        (*aux) = newPartitionNode(name, id, ptr);
+        return;
+    }
+    PartitionNode *piv = *aux;
+    while (piv->next != NULL) piv = piv->next;
+    piv->next = newPartitionNode(name, id, ptr);
+}
+
+PartitionNode *getPartitionNode(PartitionNode *aux, char id[])
+{
+    while (aux != NULL)
+    {
+        if (!strcmp(aux->id, id)) return aux;
+        aux = aux->next;
+    }
+    return NULL;
+}
+
+void deletePartitionNode(PartitionNode **aux, char id[])
+{
+    if (!strcmp((*aux)->id, id))
+    {
+        *aux = (*aux)->next;
+        return;
+    }
+    PartitionNode *pivot = *aux;
+    while(pivot->next != NULL)
+    {
+        if (!strcmp(pivot->next->id, id)) break;
+        pivot = pivot->next;
+    }
+    pivot->next = pivot->next->next;
+}
+
+void mountPartition(char path[], char name[])
+{
+    if (path[0] == '\0' || name[0] == '\0')
+    {
+        printf("Error, parametros incorrectos.\n");
+    }
+    FILE *diskFile = fopen(path, "rb+");
+    if (!diskFile)
+    {
+        printf("Error, no fue posible abrir el archivo %s\n", path);
+        return;
+    }
+    MasterBootRecord mbr;
+    fseek(diskFile, 0, SEEK_SET);
+    fread(&mbr, sizeof(MasterBootRecord), 1, diskFile);
+    int address = getAddressWithName(mbr.partitions, name);
+    int logicalAddress = getLogicalAddresWithName(mbr, name, diskFile);
+    if (address < 0 && logicalAddress < 0)
+    {
+        printf("Error, %s no posee una particion %s\n", path, name);
+        fclose(diskFile);
+        return;
+    }
+    FileDiskNode *dNode = getFileDiskNode(diskList, path);
+    if (dNode == NULL)
+    {
+        addNewFileDiskNode(&diskList, path);
+        dNode = getFileDiskNode(diskList, path);
+    }
+    char id[8] = {'v', 'd', dNode->letter, '\0'};
+    char num[4];
+    sprintf(num, "%i", dNode->count);
+    dNode->count = dNode->count + 1;
+    strcat(id, num);
+    addNewPartitionNode(&partList, name, id, dNode);
+    fclose(diskFile);
+}
+
+void unMountPartition(char id[])
+{
+    if (id[0] == '\0')
+    {
+        printf("Error, parametros incorrectos.\n");
+        return;
+    }
+    PartitionNode *p = getPartitionNode(partList, id);
+    if (p == NULL)
+    {
+        printf("Error, particion %s no se encuentra montada.\n", id);
+        return;
+    }
+    deletePartitionNode(&partList, id);
+    p = partList;
+}
+
+void report(char id[], char path[], char name[])
+{
+    if (id[0] == '\0' || path[0] == '\0' || name[0] == '\0')
+    {
+        printf("Error, parametros incorrectos.\n");
+        return;
+    }
+    PartitionNode *result = getPartitionNode(partList, id);
+    if (!result)
+    {
+        printf("Error, particion %s no se encuentra montada.\n", id);
+        return;
+    }
+    char diskPath[512];
+    strcpy(diskPath, result->filePtr->path);
+    if (!strncasecmp(name, "disk", 4))
+    {
+        reportDisk(diskPath, path);
+    }
+    else if (!strncasecmp(name, "mbr", 3))
+    {
+        reportMbr(diskPath, path);
+    }
+}
+
+void reportDisk(char filePath[], char destiny[])
+{
+    char dir[512] = {0};
+    char command[512];
+    strcpy(dir, destiny);
+    getDirectory(dir);
+    strcat(command, "mkdir -p -m a=rwx ");
+    strcat(command, dir);
+    system(command);
+    FILE *graph = fopen("/home/sebastian/graph/DiskGraph.dot", "w");
+    FILE *disk = fopen(filePath, "rb+");
+    MasterBootRecord mbr;
+    fread(&mbr, sizeof(MasterBootRecord), 1, disk);
+
+    fprintf(graph, "digraph {\n");
+    fprintf(graph, "node [shape=record, fontname = \"arial\"];\n");
+    fprintf(graph, "simple [shape = record, label = \"");
+    fprintf(graph, "MBR | ");
+    float realSize = mbr.size;
+    int pos = sizeof(MasterBootRecord);
+    int index = getNextPartition(mbr.partitions, pos);
+    while (index != -1)
+    {
+
+        Partition p = mbr.partitions[index];
+        if (p.start != pos)
+        {
+            float a = (p.start - pos);
+            fprintf(graph, " Libre\\n%.2f%% | ",  a / realSize * 100.0);
+        }
+        if (p.type == 'P' || p.type == 'p')
+        {
+            float a = p.size;
+            fprintf(graph, " Particion Primaria\\n%.2f%%", a / realSize * 100.0);
+        }
+        else
+        {
+            float a = p.size;
+            fprintf(graph, " { Particion Extendida\\n%.2f%% | {", a / realSize * 100.0);
+            ExtendedBootRecord ebr;
+            fseek(disk, p.start, SEEK_SET);
+            fread(&ebr, sizeof(ExtendedBootRecord), 1, disk);
+            int posE = ebr.start + ebr.size;
+            int nextE = ebr.next;
+            while(nextE != -1)
+            {
+                fseek(disk, nextE, SEEK_SET);
+                fread(&ebr, sizeof(ExtendedBootRecord), 1, disk);
+                if (nextE > posE)
+                {
+                    float a = nextE - posE;
+                    fprintf(graph, " Libre\\n%.2f%% | ",  a / realSize * 100.0);
+                }
+                float a = ebr.size;
+                fprintf(graph, " EBR | Logica\\n%.2f%%", a / realSize * 100.0);
+                posE = ebr.start + ebr.size;
+                nextE = ebr.next;
+                if (nextE != -1)
+                {
+                    fprintf(graph, " | ");
+                }
+            }
+            if (p.start + p.size > ebr.start + ebr.size)
+            {
+                float a = (p.start + p.size) - (ebr.start + ebr.size);
+                fprintf(graph, " | Libre\\n%.2f%% ", a / realSize * 100.0);
+            }
+            fprintf(graph, " } } ");
+        }
+        pos = p.start + p.size;
+        index = getNextPartition(mbr.partitions, pos);
+        if (index > 0)
+        {
+            fprintf(graph, " | ");
+        }
+    }
+    if (pos != realSize + sizeof(MasterBootRecord))
+    {
+        float a = (realSize + sizeof(MasterBootRecord) - pos);
+        fprintf(graph, " | Libre\\n%.2f%% ", a / realSize * 100.0);
+    }
+    fprintf(graph, "\"];\n");
+    fprintf(graph, "}");
+    fclose(graph);
+    fclose(disk);
+    char com[512] = {0};
+    strcat(com, "dot /home/sebastian/graph/DiskGraph.dot -o ");
+    strcat(com, destiny);
+    strcat(com, " -Tpng");
+    system(com);
+
+}
+void reportMbr(char filePath[], char destiny[])
+{
+
+}

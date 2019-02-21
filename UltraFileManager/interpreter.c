@@ -88,6 +88,21 @@ void execFunction(Function func)
         partitonManagerFunction(func);
         return;
     }
+    if (!strncasecmp(func.title, "mount", 5))
+    {
+        mountPartition(func.path, func.name);
+        return;
+    }
+    if (!strncasecmp(func.title, "unmount", 7))
+    {
+        unMountPartition(func.id);
+        return;
+    }
+    if (!strncasecmp(func.title, "rep", 3))
+    {
+        report(func.id, func.path, func.name);
+        return;
+    }
     if (func.title[0] == '\0')
     {
         return;
