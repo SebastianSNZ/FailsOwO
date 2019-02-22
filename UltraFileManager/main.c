@@ -8,22 +8,18 @@
 
 int main()
 {
-    srand(time(NULL));
-    analyseString("mkdisk -size~:~1 -unit~:~M -path~:~/home/archivos/fase1/Disco1.disk -fit~:~WF");
-    analyseString("fdisk -type~:~P -unit~:~K -name~:~Part1 -size~:~300 -path~:~/home/archivos/fase1/Disco1.disk -fit~:~BF");
-    analyseString("fdisk -type~:~E -unit~:~K -name~:~Part2 -size~:~200 -path~:~/home/archivos/fase1/Disco1.disk -fit~:~BF");
-    analyseString("fdisk -type~:~P -unit~:~K -name~:~Part3 -size~:~400 -path~:~/home/archivos/fase1/Disco1.disk -fit~:~BF");
-    analyseString("fdisk -type~:~L -unit~:~K -name~:~LogicalPart4 -size~:~30 -path~:~/home/archivos/fase1/Disco1.disk -fit~:~BF");
-    analyseString("fdisk -type~:~L -unit~:~K -name~:~LogicalPart5 -size~:~35 -path~:~/home/archivos/fase1/Disco1.disk -fit~:~BF");
-    analyseString("fdisk -type~:~L -unit~:~K -name~:~LogicalPart6 -size~:~40 -path~:~/home/archivos/fase1/Disco1.disk -fit~:~BF");
-    analyseString("fdisk -add~:~-20 -unit~:~K -path~:~/home/archivos/fase1/Disco1.disk -name~:~LogicalPart4");
-    analyseString("fdisk -type~:~L -unit~:~K -name~:~LogicalPart7 -size~:~15 -path~:~/home/archivos/fase1/Disco1.disk -fit~:~BF");
-    analyseString("mount -name~:~\"Part1\" -path~:~/home/archivos/fase1/Disco1.disk");
-    analyseString("mount -name~:~\"Part2\" -path~:~/home/archivos/fase1/Disco1.disk");
-    analyseString("mount -name~:~\"LogicalPart5\" -path~:~/home/archivos/fase1/Disco1.disk");
-    analyseString("unmount -id~:~vda0");
-    analyseString("rep -id~:~vda1 -Path~:~/home/archivos/fase1/Disco1.png -name~:~disk");
-    return 0;
-
+    printf("Ultra File Manager - Sebastian Sanchez - 201603014\n");
+    int exit = 1;
+    char val[512] = {0};
+    while (exit)
+    {
+        gets(val);
+        if (!strncasecmp(val, "exit", 4))
+        {
+            exit = 0;
+            continue;
+        }
+        analyseString(val);
+    }
 }
 

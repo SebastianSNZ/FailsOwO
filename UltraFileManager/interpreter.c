@@ -59,7 +59,8 @@ Function getNewFunction(ParameterList *list);
 Function getFunction();
 void execFunction(Function func);
 int getInt(char text[]);
-
+void execFile(char path[]);
+int isEmptyLine(char text[]);
 //END OF PROTOTYPES
 
 void analyseString(char instr[1024])
@@ -101,6 +102,11 @@ void execFunction(Function func)
     if (!strncasecmp(func.title, "rep", 3))
     {
         report(func.id, func.path, func.name);
+        return;
+    }
+    if (!strncasecmp(func.title, "exec", 4))
+    {
+        execFile(func.path);
         return;
     }
     if (func.title[0] == '\0')
@@ -159,6 +165,7 @@ ParameterList *getList(char instr[1024])
     ParameterList *list = newParameterList(instructionName);
     while (instruction[stPointer] != '\0')
     {
+        if(instruction[stPointer] == '#') break;
         char paramName[64] = "";
         char paramValue[512] = "";
         while(instruction[stPointer] != '-' && instruction [stPointer] != '\0')
@@ -182,6 +189,7 @@ ParameterList *getList(char instr[1024])
         }
         while (instruction[stPointer] != '-' && instruction [stPointer] != '\0')
         {
+            if (instruction[stPointer] == '#') break;
             char auxiliarCharacter[2] = {instruction[stPointer], '\0'};
             strcat(paramValue, auxiliarCharacter);
             stPointer++;
@@ -293,21 +301,54 @@ void deleteWhiteSpaces(char text[])
     i--;
     for (; i > 0; i--)
     {
-        if (text[i] == ' ' || text[i] == '\"' ) text[i] = '\0';
+        if (text[i] == ' ' || text[i] == '\"' || text[i] == '\n') text[i] = '\0';
         else  break;
     }
 }
 
 void removeStringLiteral(char text[])
 {
-    if (text[0] != '\"') return;
+    if (text[0] != '\"' && text[0] != ' ') return;
     char newText[512];
     int i;
-    for(i = 1; i < 512; i++)
+    int j;
+    for(j = 0; j < 512; j++)
+    {
+        if (text[j] != '\"' && text[j] != ' ') break;
+    }
+    for(i = j; i < 512; i++)
     {
         if (text[i] == '\0') break;
-        newText[i - 1] = text[i];
+        newText[i - j] = text[i];
     }
     newText[i] = '\0';
     strcpy(text, newText);
+}
+
+void execFile(char path[])
+{
+    FILE *readFile = fopen(path, "r");
+    if (!readFile)
+    {
+        printf("Error, imposible abrir archivo.\n");
+        return;
+    }
+    char line[512] = {0};
+    while(fgets(line, 512, readFile))
+    {
+        if (isEmptyLine(line)) continue;
+        if (line[0] == '#') continue;
+        if (line[0] == '\n') continue;
+        printf(">>%s\n", line);
+        analyseString(line);
+    }
+    fclose(readFile);
+}
+
+
+int isEmptyLine(char text[])
+{
+    deleteWhiteSpaces(text);
+    if (text[0] == '\0') return 1;
+    return 0;
 }

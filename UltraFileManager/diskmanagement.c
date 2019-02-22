@@ -162,11 +162,22 @@ void createNewDisk(int size, char fit, char unit, char path[512])
 
 void getDirectory(char text[])
 {
-    for (int i = 512; i >= 0; i--)
+    int i;
+    for (i = 512; i >= 0; i--)
     {
         if (text[i] == '/')
-            return;
+            break;
         text[i] = '\0';
+    }
+    i++;
+    text[i] = '\"';
+    char aux[512] = {0};
+    strcpy(aux, text);
+    text[0] = '\"';
+    for (int j = 1; j < 512; j++)
+    {
+        text[j] = aux[j - 1];
+        if (aux[j - 1] == '\0') break;
     }
 }
 
@@ -373,9 +384,10 @@ void addFreeSpaceBlock(FreeSpaceBlock **aux, int start, int size)
 int getNextPartition(Partition parts[], int ptr)
 {
     int i = -1;
-    int pivot = ptr;
+    int pivot = INT_MAX;
     for (int j = 0; j < 4; j++)
     {
+        //int h = parts[j].start;
         if (parts[j].status == 0 || parts[j].start < ptr)
         {
             continue;
@@ -913,7 +925,7 @@ void reportDisk(char filePath[], char destiny[])
     MasterBootRecord mbr;
     fread(&mbr, sizeof(MasterBootRecord), 1, disk);
 
-    fprintf(graph, "digraph {\n");
+    fprintf(graph, "digraph G{\n");
     fprintf(graph, "node [shape=record, fontname = \"arial\"];\n");
     fprintf(graph, "simple [shape = record, label = \"");
     fprintf(graph, "MBR | ");
@@ -993,5 +1005,72 @@ void reportDisk(char filePath[], char destiny[])
 }
 void reportMbr(char filePath[], char destiny[])
 {
+    char dir[512] = {0};
+    char command[512];
+    strcpy(dir, destiny);
+    getDirectory(dir);
+    strcat(command, "mkdir -p -m a=rwx ");
+    strcat(command, dir);
+    system(command);
+    FILE *graph = fopen("/home/sebastian/graph/DiskRep.dot", "w");
+    FILE *disk = fopen(filePath, "rb+");
+    MasterBootRecord mbr;
+    fread(&mbr, sizeof(MasterBootRecord), 1, disk);
 
+    fprintf(graph, "digraph G{\n");
+    fprintf(graph, "MBR [shape=none, margin=0, label=<<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"4\">\n");
+    fprintf(graph, "<TR> <TD COLSPAN =\"2\" >  <FONT FACE=\"boldfontname\"> %s </FONT> </TD> </TR>\n", filePath);
+    fprintf(graph, "<TR> <TD> Fit </TD> <TD> %c </TD> </TR>\n", mbr.fit);
+    fprintf(graph, "<TR> <TD> Signature </TD> <TD> %i </TD> </TR>\n", mbr.disksignature);
+    fprintf(graph, "<TR> <TD> Size </TD> <TD> %i </TD> </TR>\n", mbr.size);
+    fprintf(graph, "<TR> <TD> Date </TD> <TD> %s </TD> </TR>\n", mbr.date);
+    for (int i = 0; i < 4; i++)
+    {
+        fprintf(graph, "<TR> <TD COLSPAN =\"2\" >  <FONT FACE=\"boldfontname\"> Partition[%i] </FONT> </TD> </TR>\n", i);
+        int st = !(mbr.partitions[i].status == 0);
+        fprintf(graph, "<TR> <TD> Status </TD> <TD> %i </TD> </TR>\n", st);
+        fprintf(graph, "<TR> <TD> Name </TD> <TD> %s </TD> </TR>\n", mbr.partitions[i].name);
+        fprintf(graph, "<TR> <TD> Type </TD> <TD> %c </TD> </TR>\n", mbr.partitions[i].type);
+        fprintf(graph, "<TR> <TD> Fit </TD> <TD> %c </TD> </TR>\n", mbr.partitions[i].fit);
+        fprintf(graph, "<TR> <TD> Start </TD> <TD> %i </TD> </TR>\n", mbr.partitions[i].start);
+        fprintf(graph, "<TR> <TD> Size </TD> <TD> %i </TD> </TR>\n", mbr.partitions[i].size);
+    }
+    fprintf(graph, "</TABLE>>];\n\n");
+    int address = getExtendedIndex(mbr.partitions);
+    int next = -1;
+    if (address != -1)
+    {
+        next = mbr.partitions[address].start;
+        ExtendedBootRecord ebr;
+        fseek(disk, next, SEEK_SET);
+        fread(&ebr, sizeof(ExtendedBootRecord), 1, disk);
+        next = ebr.next;
+    }
+    int x = 0;
+    while (next != -1)
+    {
+        ExtendedBootRecord ebr;
+        fseek(disk, next, SEEK_SET);
+        fread(&ebr, sizeof(ExtendedBootRecord), 1, disk);
+        fprintf(graph, "EBR%i [shape=none, margin=0, label=<<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"4\">\n", x);
+        fprintf(graph, "<TR> <TD COLSPAN =\"2\" >  <FONT FACE=\"boldfontname\"> ExtendedBootRecord </FONT> </TD> </TR>\n");
+        int st = !(ebr.status == 0);
+        fprintf(graph, "<TR> <TD> Status </TD> <TD> %i </TD> </TR>\n", st);
+        fprintf(graph, "<TR> <TD> Name </TD> <TD> %s </TD> </TR>\n", ebr.name);
+        fprintf(graph, "<TR> <TD> Fit </TD> <TD> %c </TD> </TR>\n", ebr.fit);
+        fprintf(graph, "<TR> <TD> Start </TD> <TD> %i </TD> </TR>\n", ebr.start);
+        fprintf(graph, "<TR> <TD> Size </TD> <TD> %i </TD> </TR>\n", ebr.size);
+        fprintf(graph, "<TR> <TD> Next </TD> <TD> %i </TD> </TR>\n", ebr.next);
+        fprintf(graph, "</TABLE>>];\n\n");
+        next = ebr.next;
+        x++;
+    }
+    fprintf(graph, "}");
+    fclose(graph);
+    fclose(disk);
+    char com[512] = {0};
+    strcat(com, "dot /home/sebastian/graph/DiskRep.dot -o ");
+    strcat(com, destiny);
+    strcat(com, " -Tpng");
+    system(com);
 }
