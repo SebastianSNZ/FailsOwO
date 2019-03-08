@@ -1,5 +1,3 @@
-/* Example using strcat by TechOnTheNet.com */
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

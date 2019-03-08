@@ -5,4 +5,5 @@ CONFIG -= qt
 
 SOURCES += main.c \
     interpreter.c \
-    diskmanagement.c
+    diskmanagement.c \
+    filemanagement.c

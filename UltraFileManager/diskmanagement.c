@@ -76,7 +76,7 @@ typedef struct PARTITION_NODE PartitionNode;
 
 //VARIABLES GLOBALES
 
-FileDiskNode *diskList = NULL;
+FileDiskNode  *diskList = NULL;
 PartitionNode *partList = NULL;
 char currentLetter = 'a';
 
@@ -124,7 +124,6 @@ void reportDisk(char filePath[], char destiny[]);
 void reportMbr(char filePath[], char destiny[]);
 
 //FIN PROTOTIPOS
-
 
 
 

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "diskmanagement.c"
+#include "filemanagement.c"
 
 /*STRUCT SPACE OwO*/
 
@@ -166,8 +166,8 @@ ParameterList *getList(char instr[1024])
     while (instruction[stPointer] != '\0')
     {
         if(instruction[stPointer] == '#') break;
-        char paramName[64] = "";
-        char paramValue[512] = "";
+        char paramName[64] = {0};
+        char paramValue[512] = {0};
         while(instruction[stPointer] != '-' && instruction [stPointer] != '\0')
             stPointer++;
         stPointer++;
@@ -301,20 +301,21 @@ void deleteWhiteSpaces(char text[])
     i--;
     for (; i > 0; i--)
     {
-        if (text[i] == ' ' || text[i] == '\"' || text[i] == '\n') text[i] = '\0';
+        if (text[i] == '\"' || text[i] == ' ' || text[i] == '\n' || text[i] == '\r' || text[i] == '\t')
+            text[i] = '\0';
         else  break;
     }
 }
 
 void removeStringLiteral(char text[])
 {
-    if (text[0] != '\"' && text[0] != ' ') return;
-    char newText[512];
+    if (text[0] != '\"' && text[0] != ' ' && text[0] != '\n' && text[0] != '\r' && text[0] != '\t') return;
+    char newText[512] = {0};
     int i;
     int j;
     for(j = 0; j < 512; j++)
     {
-        if (text[j] != '\"' && text[j] != ' ') break;
+        if (text[j] != '\"' && text[j] != ' ' && text[j] != '\n' && text[j] != '\r' && text[j] != '\t') break;
     }
     for(i = j; i < 512; i++)
     {
@@ -336,11 +337,14 @@ void execFile(char path[])
     char line[512] = {0};
     while(fgets(line, 512, readFile))
     {
-        if (isEmptyLine(line)) continue;
-        if (line[0] == '#') continue;
-        if (line[0] == '\n') continue;
+        if (isEmptyLine(line) || line[0] == '#' || line[0] == '\n' || line[0] == '\r')
+        {
+            memset(&line[0], 0, sizeof(line));
+            continue;
+        }
         printf(">>%s\n", line);
         analyseString(line);
+        memset(&line[0], 0, sizeof(line));
     }
     fclose(readFile);
 }
