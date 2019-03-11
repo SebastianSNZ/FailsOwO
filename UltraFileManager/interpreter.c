@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "filemanagement.c"
 
 /*STRUCT SPACE OwO*/
@@ -39,6 +40,13 @@ struct function
 
 typedef struct function Function;
 
+
+struct TOKEN {
+    char lex[512];
+    char type;
+};
+
+typedef struct TOKEN Token;
 /*END OF STRUCT SPACE O~O*/
 
 
@@ -61,15 +69,19 @@ void execFunction(Function func);
 int getInt(char text[]);
 void execFile(char path[]);
 int isEmptyLine(char text[]);
+Token getNextToken(char text[]);
+ParameterList *syntaxViewer(char instr[]);
+int currentPosition = 0;
+int currentStatus;
+void addCharacter(char text[], char c);
 //END OF PROTOTYPES
 
 void analyseString(char instr[1024])
 {
-    ParameterList *l = getList(instr);
+    ParameterList *l = syntaxViewer(instr);
     Function f = getNewFunction(l);
     deleteParameterList(l);
     execFunction(f);
-
 }
 
 void execFunction(Function func)
@@ -337,7 +349,7 @@ void execFile(char path[])
     char line[512] = {0};
     while(fgets(line, 512, readFile))
     {
-        if (isEmptyLine(line) || line[0] == '#' || line[0] == '\n' || line[0] == '\r')
+        if (line[0] == '#' || line[0] == '\n' || line[0] == '\r' ||line[0] == ' ')
         {
             memset(&line[0], 0, sizeof(line));
             continue;
@@ -356,3 +368,193 @@ int isEmptyLine(char text[])
     if (text[0] == '\0') return 1;
     return 0;
 }
+
+
+Token getNextToken(char text[])
+{
+    int i = currentPosition;
+    char lex[512] = {0};
+    Token tok;
+    strcpy(tok.lex, "");
+    tok.type = 'N';
+
+    while (text[currentPosition] != '\0' || currentPosition > 512)
+    {
+        switch (currentStatus)
+        {
+        case 0:
+            if(isalpha(text[currentPosition]) || isdigit(text[currentPosition])
+                    || text[currentPosition] == '/' || text[currentPosition] == '.')
+            {
+                currentStatus = 2;
+                addCharacter(lex, text[currentPosition]);
+                currentPosition++;
+            }
+            else if (text[currentPosition] == '-')
+            {
+                currentStatus = 1;
+                currentPosition++;
+            }
+            else if (text[currentPosition] == '~')
+            {
+                currentStatus = 4;
+                currentPosition++;
+            }
+            else if (text[currentPosition] == '\"')
+            {
+                currentStatus = 3;
+                currentPosition++;
+            }
+            else if (text[currentPosition] == '#')
+            {
+                return tok;
+            }
+            else
+            {
+                currentPosition++;
+            }
+            break;
+        case 1:
+            if (isalpha(text[currentPosition]))
+            {
+                currentStatus = 52;
+                addCharacter(lex, text[currentPosition]);
+                currentPosition++;
+            }
+            else if (isdigit(text[currentPosition]))
+            {
+                currentStatus = 50;
+                addCharacter(lex, '-');
+                addCharacter(lex, text[currentPosition]);
+                currentPosition++;
+            }
+            else
+            {
+                currentStatus = 0;
+                tok.type = 'N';
+                return tok;
+            }
+            break;
+        case 2:
+            if (isalpha(text[currentPosition]) || isdigit(text[currentPosition])
+                    || text[currentPosition] == '/' || text[currentPosition] == '.')
+            {
+                currentStatus = 2;
+                addCharacter(lex, text[currentPosition]);
+                currentPosition++;
+            }
+            else
+            {
+                currentStatus = 0;
+                tok.type = 'V';
+                strcpy(tok.lex, lex);
+                return tok;
+            }
+            break;
+        case 3:
+            if (text[currentPosition] == '\"')
+            {
+                currentStatus = 0;
+                currentPosition++;
+                tok.type = 'V';
+                strcpy(tok.lex, lex);
+                return tok;
+            }
+            else
+            {
+                currentStatus = 3;
+                addCharacter(lex, text[currentPosition]);
+                currentPosition++;
+            }
+            break;
+        case 4:
+            if (text[currentPosition] == '~' || text[currentPosition] == ':')
+            {
+                currentStatus = 4;
+                currentPosition++;
+            }
+            else
+            {
+                currentStatus = 0;
+                tok.type = 'S';
+                strcpy(tok.lex, lex);
+                return tok;
+            }
+            break;
+        case 50:
+            if (isdigit(text[currentPosition]))
+            {
+                currentStatus = 50;
+                addCharacter(lex, text[currentPosition]);
+                currentPosition++;
+            }
+            else
+            {
+                currentStatus = 0;
+                tok.type = 'V';
+                strcpy(tok.lex, lex);
+                return tok;
+            }
+            break;
+        case 52:
+            if (isalpha(text[currentPosition]) || isdigit(text[currentPosition]))
+            {
+                currentStatus = 52;
+                addCharacter(lex, text[currentPosition]);
+                currentPosition++;
+            }
+            else
+            {
+                currentStatus = 0;
+                tok.type = 'P';
+                strcpy(tok.lex, lex);
+                return tok;
+            }
+            break;
+        }
+    }
+    return tok;
+}
+
+void addCharacter(char text[], char c)
+{
+    char aux[2] = {c, '\0'};
+    strcat(text, aux);
+}
+
+ParameterList *syntaxViewer(char instr[])
+{
+    addCharacter(instr, '#');
+    currentStatus = 0;
+    currentPosition = 0;
+    Token next = getNextToken(instr);
+    ParameterList *param = newParameterList(next.lex);
+    next = getNextToken(instr);
+    while (next.type != 'N')
+    {
+        char par[64] = {0};
+        strcpy(par, next.lex);
+        next = getNextToken(instr);
+        if (next.type == 'S')
+        {
+            next = getNextToken(instr);
+            addNewParameter(param, newParameter(par, next.lex));
+            next = getNextToken(instr);
+        }
+        else
+        {
+            addNewParameter(param, newParameter(par, "1"));
+        }
+    }
+    return param;
+}
+
+
+
+
+
+
+
+
+
+
