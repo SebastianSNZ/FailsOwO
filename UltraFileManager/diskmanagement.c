@@ -67,6 +67,9 @@ struct PARTITION_NODE
     char name[32];
     FileDiskNode *filePtr;
     char id[32];
+    int start;
+    int size;
+    char type;
     struct PARTITION_NODE *next;
 };
 
@@ -112,8 +115,8 @@ FreeSpaceBlock *getLogicalFreeSpace(ExtendedBootRecord first, FILE *writeFile, i
 FileDiskNode *newFileDiskNode(char letter, char path[]);
 void addNewFileDiskNode(FileDiskNode **aux, char path[]);
 FileDiskNode *getFileDiskNode(FileDiskNode *aux, char path[]);
-PartitionNode *newPartitionNode(char name[], char id[], FileDiskNode *ptr);
-void addNewPartitionNode(PartitionNode **aux, char name[], char id[], FileDiskNode *ptr);
+PartitionNode *newPartitionNode(char name[], char id[], FileDiskNode *ptr, int part, int size, char type);
+void addNewPartitionNode(PartitionNode **aux, char name[], char id[], FileDiskNode *ptr, int part, int size, char type);
 PartitionNode *getPartitionNode(PartitionNode *aux, char id[]);
 void mountPartition(char path[], char name[]);
 void deletePartitionNode(PartitionNode **aux, char id[]);
@@ -781,27 +784,30 @@ FileDiskNode *getFileDiskNode(FileDiskNode *aux, char path[])
 }
 
 
-PartitionNode *newPartitionNode(char name[], char id[], FileDiskNode *ptr)
+PartitionNode *newPartitionNode(char name[], char id[], FileDiskNode *ptr, int part, int size, char type)
 {
     PartitionNode *pNode = (PartitionNode *) malloc(sizeof(PartitionNode));
     strcpy(pNode->id, id);
     strcpy(pNode->name, name);
     pNode->filePtr = ptr;
     pNode->next = NULL;
+    pNode->start = part;
+    pNode->size = size;
+    pNode->type = type;
     return pNode;
 }
 
 
-void addNewPartitionNode(PartitionNode **aux, char name[], char id[], FileDiskNode *ptr)
+void addNewPartitionNode(PartitionNode **aux, char name[], char id[], FileDiskNode *ptr, int part, int size, char type)
 {
     if ((*aux) == NULL)
     {
-        (*aux) = newPartitionNode(name, id, ptr);
+        (*aux) = newPartitionNode(name, id, ptr, part, size, type);
         return;
     }
     PartitionNode *piv = *aux;
     while (piv->next != NULL) piv = piv->next;
-    piv->next = newPartitionNode(name, id, ptr);
+    piv->next = newPartitionNode(name, id, ptr, part, size, type);
 }
 
 PartitionNode *getPartitionNode(PartitionNode *aux, char id[])
@@ -847,11 +853,28 @@ void mountPartition(char path[], char name[])
     fread(&mbr, sizeof(MasterBootRecord), 1, diskFile);
     int address = getAddressWithName(mbr.partitions, name);
     int logicalAddress = getLogicalAddresWithName(mbr, name, diskFile);
+    int size = 0, start = 0;
+    char type = 'P';
     if (address < 0 && logicalAddress < 0)
     {
         printf("Error, %s no posee una particion %s\n", path, name);
         fclose(diskFile);
         return;
+    }
+    else if (logicalAddress >= 0)
+    {
+        ExtendedBootRecord ebr;
+        fseek(diskFile, logicalAddress, diskFile);
+        fread(&ebr, sizeof(ExtendedBootRecord), 1, diskFile);
+        start = logicalAddress;
+        size = ebr.size;
+        type = 'L';
+    }
+    else if (address >= 0)
+    {
+        start = mbr.partitions[address].start;
+        size = mbr.partitions[address].size;
+        type = mbr.partitions[address].type;
     }
     FileDiskNode *dNode = getFileDiskNode(diskList, path);
     if (dNode == NULL)
@@ -864,7 +887,7 @@ void mountPartition(char path[], char name[])
     sprintf(num, "%i", dNode->count);
     dNode->count = dNode->count + 1;
     strcat(id, num);
-    addNewPartitionNode(&partList, name, id, dNode);
+    addNewPartitionNode(&partList, name, id, dNode, start, size, type);
     fclose(diskFile);
 }
 
