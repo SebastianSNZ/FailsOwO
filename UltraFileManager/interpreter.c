@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "filemanagement.c"
+#include "diskmanagement.c"
 
 /*STRUCT SPACE OwO*/
 
@@ -35,6 +35,7 @@ struct function
     char name[512];
     char add[512];
     char id[512];
+    char fs[512];
     int errorParameter;
 };
 
@@ -57,9 +58,8 @@ void analyseString(char instr[1024]);
 void deleteParameterList(ParameterList *list);
 void deleteParameter(ParameterDuo *par);
 void partitonManagerFunction(Function func);
-ParameterList *getList(char instr[1024]);
-ParameterDuo *newParameter(char name[64], char value[512]);
-ParameterList *newParameterList(char name[64]);
+ParameterDuo *newParameter(char name[], char value[]);
+ParameterList *newParameterList(char name[]);
 int addNewParameter(ParameterList *list, ParameterDuo *parameter);
 void deleteWhiteSpaces(char text[]);
 void removeStringLiteral(char text[]);
@@ -121,6 +121,11 @@ void execFunction(Function func)
         execFile(func.path);
         return;
     }
+    if (!strncasecmp(func.title, "mkfs", 4))
+    {
+        makeFileSystem(func.id, func.type, func.fs);
+        return;
+    }
     if (func.title[0] == '\0')
     {
         return;
@@ -160,58 +165,7 @@ int getInt(char text[]) {
     return val*negative;
 }
 
-
-ParameterList *getList(char instr[1024])
-{
-    char instruction[1024] = "";
-    char instructionName[64] = "";
-    strcat(instruction, instr);
-    int stPointer = 0;
-    if (instruction[0] == '#') return newParameterList(instructionName);
-    while (instruction[stPointer] != ' ' && instruction[stPointer] != '\0')
-    {
-        char auxiliarCharacter[2] = {instruction[stPointer], '\0'};
-        strcat(instructionName, auxiliarCharacter);
-        stPointer++;
-    }
-    ParameterList *list = newParameterList(instructionName);
-    while (instruction[stPointer] != '\0')
-    {
-        if(instruction[stPointer] == '#') break;
-        char paramName[64] = {0};
-        char paramValue[512] = {0};
-        while(instruction[stPointer] != '-' && instruction [stPointer] != '\0')
-            stPointer++;
-        stPointer++;
-        while (instruction[stPointer] != '~' && instruction [stPointer] != '\0')
-        {
-            char auxiliarCharacter[2] = {instruction[stPointer], '\0'};
-            strcat(paramName, auxiliarCharacter);
-            stPointer++;
-        }
-        stPointer++;
-        while (instruction[stPointer] != '~' && instruction [stPointer] != '\0')
-            stPointer++;
-        stPointer++;
-        if (instruction[stPointer] == '-' )
-        {
-            char auxiliarCharacter[2] = {instruction[stPointer], '\0'};
-            strcat(paramValue, auxiliarCharacter);
-            stPointer++;
-        }
-        while (instruction[stPointer] != '-' && instruction [stPointer] != '\0')
-        {
-            if (instruction[stPointer] == '#') break;
-            char auxiliarCharacter[2] = {instruction[stPointer], '\0'};
-            strcat(paramValue, auxiliarCharacter);
-            stPointer++;
-        }
-        addNewParameter(list, newParameter(paramName, paramValue));
-    }
-    return list;
-}
-
-ParameterList *newParameterList(char name[64])
+ParameterList *newParameterList(char name[])
 {
     ParameterList *newList = (ParameterList*) malloc(sizeof(ParameterList));
     newList->firstValue = NULL;
@@ -221,7 +175,7 @@ ParameterList *newParameterList(char name[64])
 
 
 
-ParameterDuo *newParameter(char name[64], char value[512])
+ParameterDuo *newParameter(char name[], char value[])
 {
     ParameterDuo *newPar = (ParameterDuo*) malloc(sizeof(ParameterDuo));
     strcpy(newPar->parameterName, name);
@@ -273,6 +227,7 @@ Function getNewFunction(ParameterList *list)
         else if (!strncasecmp(aux->parameterName, "name", 4)) strcpy(func.name, aux->parameterValue);
         else if (!strncasecmp(aux->parameterName, "add", 3)) strcpy(func.add, aux->parameterValue);
         else if (!strncasecmp(aux->parameterName, "id", 2)) strcpy(func.id, aux->parameterValue);
+        else if (!strncasecmp(aux->parameterName, "fs", 2)) strcpy(func.fs, aux->parameterValue);
         else if ((aux->parameterName)[0] == '#');
         else
         {
@@ -297,6 +252,7 @@ Function getFunction()
     strcpy(fun.name, "");
     strcpy(fun.add, "");
     strcpy(fun.id, "");
+    strcpy(fun.fs, "");
     fun.errorParameter = 0;
     return fun;
 }

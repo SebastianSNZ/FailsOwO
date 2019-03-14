@@ -1096,3 +1096,274 @@ void reportMbr(char filePath[], char destiny[])
     strcat(com, " -Tpng");
     system(com);
 }
+
+
+
+/*
+ *
+ * INICIO DE LA SEGUNDA FASE
+*/
+
+
+
+
+struct SUPER_BLOCK
+{
+    int type;
+    int inodesCount;
+    int blocksCount;
+    int freeBlockCount;
+    int freeInodesCount;
+    char mountTime[16];
+    char unmountTime[16];
+    int mountCount;
+    int magic;
+    int inodeSize;
+    int blockSize;
+    int firstInode;
+    int firstBlock;
+    int inodeStart;
+    int blockStart;
+    int bmInodeStart;
+    int bmBlockStart;
+};
+
+typedef struct SUPER_BLOCK SuperBlock;
+
+struct INODE
+{
+    int uid;
+    int gid;
+    int size;
+    char aTime[16];
+    char cTime[16];
+    char mTime[16];
+    int block[15];
+    char type;
+    int perm;
+};
+
+typedef struct INODE Inode;
+
+struct CONTENT
+{
+    char name[12];
+    int inode;
+};
+
+typedef struct CONTENT Content;
+
+struct FOLDERBLOCK
+{
+    Content content[4];
+};
+
+typedef struct FOLDERBLOCK FolderBlock;
+
+struct FILE_BLOCK
+{
+    char content[64];
+};
+
+typedef struct FILE_BLOCK FileBlock;
+
+struct POINTER_BLOCK
+{
+    int pointer[16];
+};
+
+typedef struct POINTER_BLOCK PointerBlock;
+
+struct JOURNALING
+{
+    char operation;
+    char type;
+    char name[12];
+    char content[200];
+    char date[16];
+    int owner;
+    int perm;
+};
+
+typedef struct JOURNALING Journal;
+
+
+
+int getInode3Number(int partSize);
+int getInode2Number(int partSize);
+void makeFileSystem(char id[], char type[], char fs[]);
+void makeExt2(PartitionNode *node, char path[], int n);
+void makeExt3(PartitionNode *node, char path[], int n);
+void deleteFull(PartitionNode *node, char path[]);
+void getDate(char cad[]);
+void createFirstFolder(SuperBlock sb, FILE *disk);
+Inode newInode();
+FolderBlock newFolderBlock();
+
+void makeFileSystem(char id[], char type[], char fs[])
+{
+    PartitionNode *part = getPartitionNode(partList, id);
+    if (part == NULL)
+    {
+        printf("Error, la particion %s no se encuentra montada.\n", id);
+        return;
+    }
+    char path[512] = {0};
+    strcpy(path, part->filePtr->path);
+    if (strcasecmp(type, "fast"))
+    {
+        deleteFull(part, path);
+    }
+    if (fs[0] == '3')
+    {
+        makeExt3(part, path, getInode3Number(part->size));
+        return;
+    }
+    makeExt2(part, path, getInode2Number(part->size));
+}
+
+
+void makeExt2(PartitionNode *node, char path[], int n)
+{
+
+}
+
+void prueba(char path[], PartitionNode *node)
+{
+    SuperBlock sb;
+    FILE *disk = fopen(path, "rb+");
+    fseek(disk, node->start, SEEK_SET);
+    fread(&sb, sizeof(SuperBlock), 1, disk);
+    char bit = 0;
+    for (int i = 0; i < 40; i++)
+    {
+        fseek(disk, sb.bmBlockStart + i, SEEK_SET);
+        fread(&bit, sizeof(char), 1, disk);
+        if (bit) printf("1");
+        else printf("0");
+        printf("\n");
+    }
+
+    fclose(disk);
+}
+
+void makeExt3(PartitionNode *node, char path[], int n)
+{
+    SuperBlock sb;
+    sb.type = 3;
+    sb.inodesCount = n;
+    sb.blocksCount = 3 * n;
+    sb.freeInodesCount = n - 1;
+    sb.freeBlockCount = 3 * n - 1;
+    sb.mountCount = 1;
+    sb.magic = 0xEF53;
+    sb.inodeSize = sizeof(Inode);
+    sb.blockSize = sizeof(FolderBlock);
+    sb.firstInode = 1;
+    sb.firstBlock = 1;
+    sb.bmInodeStart = node->start + sizeof(SuperBlock) + sizeof(Journal) * n;
+    sb.bmBlockStart = sb.bmInodeStart + n;
+    sb.inodeStart = sb.bmBlockStart + 3 * n;
+    sb.blockStart = sb.inodeStart + sizeof(Inode) * n;
+    char date[16] = {0};
+    getDate(date);
+    strcpy(sb.mountTime, date);
+    strcpy(sb.unmountTime, date);
+    FILE *disk = fopen(path, "rb+");
+    if (disk == NULL) return;
+    fseek(disk, node->start, SEEK_SET);
+    fwrite(&sb, sizeof(SuperBlock), 1, disk);
+    createFirstFolder(sb, disk);
+    fclose(disk);
+    //prueba(path, node);
+}
+
+void createFirstFolder(SuperBlock sb, FILE *disk)
+{
+    Inode rootNode = newInode();
+    rootNode.gid = 1;
+    rootNode.uid = 1;
+    rootNode.block[0] = 0;
+    fseek(disk, sb.inodeStart, SEEK_SET);
+    fwrite(&rootNode, sizeof(Inode), 1, disk);
+    FolderBlock fb = newFolderBlock();
+    fb.content[0].inode = 0;
+    strcpy(fb.content[0].name, ".");
+    fb.content[1].inode = 0;
+    strcpy(fb.content[1].name, "..");
+    fseek(disk, sb.blockStart, SEEK_SET);
+    fwrite(&fb, sizeof(FolderBlock), 1, disk);
+    char w = 1;
+    fseek(disk, sb.bmBlockStart, SEEK_SET);
+    fwrite(&w, sizeof(char), 1, disk);
+    fseek(disk, sb.bmInodeStart, SEEK_SET);
+    fwrite(&w, sizeof(char), 1, disk);
+}
+
+FolderBlock newFolderBlock()
+{
+    FolderBlock block;
+    for(int i = 0; i < 4; i++)
+    {
+        block.content[i].inode = -1;
+        strcpy(block.content[i].name, "");
+    }
+    return block;
+}
+
+Inode newInode()
+{
+    Inode node;
+    node.uid = 0;
+    node.gid = 0;
+    node.size = 0;
+    char date[16] = {0};
+    getDate(date);
+    strcpy(node.aTime, date);
+    strcpy(node.cTime, date);
+    strcpy(node.mTime, date);
+    node.type = 0;
+    node.perm = 0;
+    for(int i = 0; i < 15; i++)
+    {
+        node.block[i] = -1;
+    }
+    return node;
+}
+
+void getDate(char cad[])
+{
+    time_t t = time(0);
+    struct tm *current = localtime(&t);
+    strftime(cad, 128, "%d/%m/%y %H:%M", current);
+}
+
+void deleteFull(PartitionNode *node, char path[])
+{
+    char zero[1024] = {'\0'};
+    FILE *disk = fopen(path, "rb+");
+    if (disk == NULL) return;
+    int first = node->start;
+    int last = node->start + node->size;
+    for (int i = first; i < last; i += 1024)
+    {
+        fseek(disk, i, SEEK_SET);
+        fwrite(zero, sizeof(char) * 1024, 1, disk);
+    }
+    fclose(disk);
+}
+
+int getInode3Number(int partSize)
+{
+    double ret = (partSize - sizeof(SuperBlock));
+    ret = ret / (4 + sizeof(Journal) + sizeof(Inode) + 3 * sizeof(FileBlock));
+    return (int) ret;
+}
+
+int getInode2Number(int partSize)
+{
+    double ret = (partSize - sizeof(SuperBlock));
+    ret = ret / (4 + sizeof(Inode) + 3 * sizeof(FileBlock));
+    return (int) ret;
+}
+
