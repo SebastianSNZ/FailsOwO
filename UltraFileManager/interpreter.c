@@ -328,7 +328,6 @@ int isEmptyLine(char text[])
 
 Token getNextToken(char text[])
 {
-    int i = currentPosition;
     char lex[512] = {0};
     Token tok;
     strcpy(tok.lex, "");
