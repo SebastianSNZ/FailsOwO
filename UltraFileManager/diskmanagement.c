@@ -1221,14 +1221,19 @@ void writeBlock(SuperBlock *sb, FILE *disk, void *block, int index);
 void writeInode(SuperBlock *sb, FILE *disk, Inode *inode, int index);
 void writeInBlockBitmap(SuperBlock *sb, FILE *disk, char value, int index);
 void writeInInodeBitmap(SuperBlock *sb, FILE *disk, char value, int index);
-int addNewItem(SuperBlock *sb, FILE *disk, int father, char name[], int perm, char content[], char pathcont[], int type);
-int addNewItemByLevel(SuperBlock *sb, FILE *disk, int direction, char name[], int father, int level, int perm, char content[], char pathcont[], int type);
+int addNewItem(SuperBlock *sb, FILE *disk, int father, char name[], int perm, char content[], int size, int type);
+int addNewItemByLevel(SuperBlock *sb, FILE *disk, int direction, char name[], int father, int level, int perm, char content[], int size, int type);
 void createFolder(SuperBlock *sb, FILE *disk, int index, int father, int perm);
+int createFile(SuperBlock *sb, FILE *disk, int index, int perm, int size, char path[]);
 void pushStringList(StringList *list, char text[]);
 void popStringList(StringList *list);
 StringList* makePathToList(char path[]);
-int makeNewItemInSystem(SuperBlock *sb, FILE *disk, StringList *list, int p, int address, char readpath[], char content[], int perm, int type);
+int makeNewItemInSystem(SuperBlock *sb, FILE *disk, StringList *list, int p, int address, int size, char content[], int perm, int type);
 void makeNewDirectory(char path[], int p, int perm, PartitionNode *node);
+void makeNewFile(char path[], char content[], int size, int p, int perm, PartitionNode *node);
+void addFileBlockFromFile(SuperBlock *sb, FILE *disk, char path[], Inode *inode);
+void addFileBlockFromSize(SuperBlock *sb, FILE *disk, int size, Inode *inode);
+void addFileBlock(SuperBlock *sb, FILE *disk, FileBlock *block, Inode *node);
 
 Inode newInode();
 FolderBlock newFolderBlock();
@@ -1299,6 +1304,10 @@ void prueba(char path[], PartitionNode *node)
     makeNewDirectory("/home/", 1, 664, node);
     makeNewDirectory("/dev/", 1, 664, node);
     makeNewDirectory("/bin/", 1, 664, node);
+    makeNewDirectory("/home/", 1, 664, node);
+    makeNewFile("/home/prueba.txt", "", 512, 1, 664, node);
+    makeNewFile("/home/texto.txt", "/home/sebastian/Documentos/Hola.txt", 0, 1, 777, node);
+
 }
 
 void makeExt3(PartitionNode *node, char path[], int n)
@@ -1534,7 +1543,7 @@ void writeInInodeBitmap(SuperBlock *sb, FILE *disk, char value, int index)
     else sb->freeInodesCount = sb->freeInodesCount + 1;
 }
 
-int addNewItem(SuperBlock *sb, FILE *disk, int father, char name[], int perm, char content[], char pathcont[], int type)
+int addNewItem(SuperBlock *sb, FILE *disk, int father, char name[], int perm, char content[], int size, int type)
 {
     int adrs = getInodeAddressByIndex(sb, father);
     Inode in;
@@ -1556,18 +1565,18 @@ int addNewItem(SuperBlock *sb, FILE *disk, int father, char name[], int perm, ch
             FolderBlock fb = newFolderBlock();
             writeInBlockBitmap(sb, disk, 1, new);
             writeBlock(sb, disk, &fb, new);
-            res = addNewItemByLevel(sb, disk, in.block[i], name, father, level, perm, content, pathcont, type);
+            res = addNewItemByLevel(sb, disk, in.block[i], name, father, level, perm, content, size, type);
         }
         else
         {
-            res = addNewItemByLevel(sb, disk, in.block[i], name, father, level, perm, content, pathcont, type);
+            res = addNewItemByLevel(sb, disk, in.block[i], name, father, level, perm, content, size, type);
         }
         if (res != -1) return res;
     }
     return -1;
 }
 
-int addNewItemByLevel(SuperBlock *sb, FILE *disk, int direction, char name[], int father, int level, int perm, char content[], char pathcont[], int type)
+int addNewItemByLevel(SuperBlock *sb, FILE *disk, int direction, char name[], int father, int level, int perm, char content[], int size, int type)
 {
     if (level == 0)
     {
@@ -1582,10 +1591,12 @@ int addNewItemByLevel(SuperBlock *sb, FILE *disk, int direction, char name[], in
                 int new = sb->firstInode;
                 folbl.content[i].inode = new;
                 strcpy(folbl.content[i].name, name);
+                if (type == 1)
+                {
+                    if (!createFile(sb, disk, new, perm, size, content)) return -1;
+                }
+                else createFolder(sb, disk, new, father, perm);
                 writeBlock(sb, disk, &folbl, direction);
-                if (type == 0) createFolder(sb, disk, new, father, perm);
-                //else if (type == 1)
-                //else
                 return new;
             }
         }
@@ -1593,6 +1604,7 @@ int addNewItemByLevel(SuperBlock *sb, FILE *disk, int direction, char name[], in
     }
     return -1;
 }
+
 
 void createFolder(SuperBlock *sb, FILE *disk, int index, int father, int perm)
 {
@@ -1612,7 +1624,7 @@ void createFolder(SuperBlock *sb, FILE *disk, int index, int father, int perm)
     writeBlock(sb, disk, &fb, newblc);
 }
 
-int makeNewItemInSystem(SuperBlock *sb, FILE *disk, StringList *list, int p, int address, char readpath[], char content[], int perm, int type)
+int makeNewItemInSystem(SuperBlock *sb, FILE *disk, StringList *list, int p, int address, int size, char content[], int perm, int type)
 {
     Inode node;
     int a = getInodeAddressByIndex(sb, address);
@@ -1620,12 +1632,16 @@ int makeNewItemInSystem(SuperBlock *sb, FILE *disk, StringList *list, int p, int
     fread(&node, sizeof(Inode), 1, disk);
     if (node.type != 0) return - 1;
     if (list->start != NULL && list->start->next == NULL)
-        return addNewItem(sb, disk, address, list->start->text, perm, content, readpath, type);
+    {
+        int val = searchInFolder(sb, disk, address, list->start->text);
+        if (val != -1) return -1;
+        return addNewItem(sb, disk, address, list->start->text, perm, content, size, type);
+    }
     int nextAddress = searchInFolder(sb, disk, address, list->start->text);
-    if (nextAddress < 0 && p) nextAddress = addNewItem(sb, disk, address, list->start->text, perm, content, readpath, type);
+    if (nextAddress < 0 && p) nextAddress = addNewItem(sb, disk, address, list->start->text, perm, content, size, type);
     if (nextAddress < 0) return -1;
     popStringList(list);
-    return makeNewItemInSystem(sb, disk, list, p, nextAddress, readpath, content, perm, type);
+    return makeNewItemInSystem(sb, disk, list, p, nextAddress, size, content, perm, type);
 }
 
 void makeNewDirectory(char path[], int p, int perm, PartitionNode *node)
@@ -1641,7 +1657,27 @@ void makeNewDirectory(char path[], int p, int perm, PartitionNode *node)
     if (!diskFile) return;
     fseek(diskFile, node->start, SEEK_SET);
     fread(&sb, sizeof(SuperBlock), 1, diskFile);
-    makeNewItemInSystem(&sb, diskFile, slist, p, 0, "", "", perm, 0);
+    makeNewItemInSystem(&sb, diskFile, slist, p, 0, 0, "", perm, 0);
+    fseek(diskFile, node->start, SEEK_SET);
+    fwrite(&sb, sizeof(SuperBlock), 1, diskFile);
+    fclose(diskFile);
+}
+
+void makeNewFile(char path[], char content[], int size, int p, int perm, PartitionNode *node)
+{
+
+    if (path[0] == 0)
+    {
+        printf("Error, el parametro _path_ se encuentra vacio.\n");
+        return;
+    }
+    SuperBlock sb;
+    StringList *slist = makePathToList(path);
+    FILE *diskFile = fopen(node->filePtr->path, "rb+");
+    if (!diskFile) return;
+    fseek(diskFile, node->start, SEEK_SET);
+    fread(&sb, sizeof(SuperBlock), 1, diskFile);
+    makeNewItemInSystem(&sb, diskFile, slist, p, 0, size, content, perm, 1);
     fseek(diskFile, node->start, SEEK_SET);
     fwrite(&sb, sizeof(SuperBlock), 1, diskFile);
     fclose(diskFile);
@@ -1693,3 +1729,99 @@ StringList* makePathToList(char path[])
     }
     return slist;
 }
+
+int createFile(SuperBlock *sb, FILE *disk, int index, int perm, int size, char path[])
+{
+    if (path[0] == 0 && size < 0) return 0;
+    Inode node = newInode();
+    node.perm = perm;
+    node.type = 1;
+    node.size = size;
+    //AGREGAR UID Y GID
+    if (path[0] != 0) addFileBlockFromFile(sb, disk, path, &node);
+    else addFileBlockFromSize(sb, disk, size, &node);
+    writeInInodeBitmap(sb, disk, 1, index);
+    writeInode(sb, disk, &node, index);
+    return 1;
+}
+
+void addFileBlockFromFile(SuperBlock *sb, FILE *disk, char path[], Inode *inode)
+{
+    FILE *cont = fopen(path, "r");
+    if (!cont) return;
+    FileBlock fb;
+    int size = 0;
+    int i = 0;
+    int get = 0;
+    while ((get = fgetc(cont)) != EOF)
+    {
+        if (i == 64)
+        {
+            addFileBlock(sb, disk, &fb, inode);
+            i = 0;
+        }
+        fb.content[i] = (char) get;
+        i++;
+        size++;
+    }
+    int b = i != 0;
+    for (; i < 64 && b; i++)
+    {
+        fb.content[i] = 0;
+    }
+    if (b) addFileBlock(sb, disk, &fb, inode);
+    fclose(cont);
+}
+
+
+void addFileBlockFromSize(SuperBlock *sb, FILE *disk, int size, Inode *inode)
+{
+    char *buffer = (char*) malloc(sizeof(char) * (size + 1));
+    int i = 0;
+    while (i < size)
+    {
+        for (int j = 0; j < 10 && i < size; j++)
+        {
+            buffer[i] = j + '0';
+            i++;
+        }
+    }
+    buffer[size] = '\0';
+    int a = 0;
+    int k = 0;
+    FileBlock fb;
+    for (; k < size; k++, a++)
+    {
+        if (a == 64)
+        {
+            addFileBlock(sb, disk, &fb, inode);
+            a = 0;
+        }
+        fb.content[a] = buffer[k];
+    }
+    int b = a != 0;
+    for (; a < 64 && b; a++)
+    {
+        fb.content[a] = 0;
+    }
+    if (b) addFileBlock(sb, disk, &fb, inode);
+    free(buffer);
+}
+
+
+void addFileBlock(SuperBlock *sb, FILE *disk, FileBlock *block, Inode *node)
+{
+    for (int i = 0; i < 15; i++)
+    {
+        if (node->block[i] == -1 && i < 12)
+        {
+            int ad = sb->firstBlock;
+            node->block[i] = ad;
+            writeInBlockBitmap(sb, disk, 1, ad);
+            writeBlock(sb, disk, block, ad);
+            break;
+        }
+    }
+}
+
+
