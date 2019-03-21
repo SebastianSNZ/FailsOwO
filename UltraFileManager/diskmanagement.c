@@ -136,7 +136,7 @@ void createNewDisk(int size, char fit, char unit, char path[512])
     if (fit == '\0') fit = 'F';
     if (unit == '0') unit = 'M';
     char dir[512] = {0};
-    char command[512];
+    char command[512] = {0};
     strcpy(dir, path);
     getDirectory(dir);
     strcat(command, "mkdir -p -m a=rwx ");
@@ -921,7 +921,7 @@ void report(char id[], char path[], char name[])
         printf("Error, particion %s no se encuentra montada.\n", id);
         return;
     }
-    char diskPath[512];
+    char diskPath[512] = {0};
     strcpy(diskPath, result->filePtr->path);
     if (!strncasecmp(name, "disk", 4))
     {
@@ -936,7 +936,7 @@ void report(char id[], char path[], char name[])
 void reportDisk(char filePath[], char destiny[])
 {
     char dir[512] = {0};
-    char command[512];
+    char command[512] = {0};
     strcpy(dir, destiny);
     getDirectory(dir);
     strcat(command, "mkdir -p -m a=rwx ");
@@ -1215,6 +1215,7 @@ void setNextFreeBlock(SuperBlock *sb, FILE *disk);
 void setNextFreeInode(SuperBlock *sb, FILE *disk);
 int searchInFolder(SuperBlock *sb, FILE *disk, int index, char name[]);
 int searchInFolderByLevel(SuperBlock *sb, FILE *disk, int direction, char name[], int level);
+int findItemInSystem(SuperBlock *sb, FILE *disk, StringList *list, int address);
 int getInodeAddressByIndex(SuperBlock *sb, int index);
 int getBlockAddressByIndex(SuperBlock *sb, int index);
 void writeBlock(SuperBlock *sb, FILE *disk, void *block, int index);
@@ -1234,6 +1235,16 @@ void makeNewFile(char path[], char content[], int size, int p, int perm, Partiti
 void addFileBlockFromFile(SuperBlock *sb, FILE *disk, char path[], Inode *inode);
 void addFileBlockFromSize(SuperBlock *sb, FILE *disk, int size, Inode *inode);
 void addFileBlock(SuperBlock *sb, FILE *disk, FileBlock *block, Inode *node);
+void treeReport(PartitionNode *node);
+void treeReportInode(SuperBlock *sb, FILE *disk, FILE *dot, int index);
+void treeReportFileBlock(SuperBlock *sb, FILE *disk, FILE *dot, int index);
+void treeReportFolderBlock(SuperBlock *sb, FILE *disk, FILE *dot, int index);
+void bitmapInodeReport(PartitionNode *node, char path[]);
+void bitmapBlockReport(PartitionNode *node, char path[]);
+void listInodeReport(PartitionNode *node);
+void listBlockReport(PartitionNode *node);
+void superBlockReport(PartitionNode *node);
+void fileReport(PartitionNode *partNode, char systemPath[], char destinyPath[]);
 
 Inode newInode();
 FolderBlock newFolderBlock();
@@ -1305,9 +1316,16 @@ void prueba(char path[], PartitionNode *node)
     makeNewDirectory("/dev/", 1, 664, node);
     makeNewDirectory("/bin/", 1, 664, node);
     makeNewDirectory("/home/", 1, 664, node);
-    makeNewFile("/home/prueba.txt", "", 512, 1, 664, node);
-    makeNewFile("/home/texto.txt", "/home/sebastian/Documentos/Hola.txt", 0, 1, 777, node);
-
+    makeNewFile("/home/ayuda/texto.txt", "", 512, 1, 664, node);
+    makeNewFile("/home/coso/texto.txt", "/home/sebastian/Documentos/Hola.txt", 0, 1, 777, node);
+    treeReport(node);
+    bitmapInodeReport(node, "/home/sebastian/Documentos/bmInode.txt");
+    bitmapBlockReport(node, "/home/sebastian/Documentos/bmBlock.txt");
+    listInodeReport(node);
+    listBlockReport(node);
+    superBlockReport(node);
+    fileReport(node, "/home/ayuda/texto.txt", "/home/sebastian/Documentos/archivinho.txt");
+    fileReport(node, "/home/coso/texto.txt", "/home/sebastian/Documentos/archivinho2.txt");
 }
 
 void makeExt3(PartitionNode *node, char path[], int n)
@@ -1638,10 +1656,24 @@ int makeNewItemInSystem(SuperBlock *sb, FILE *disk, StringList *list, int p, int
         return addNewItem(sb, disk, address, list->start->text, perm, content, size, type);
     }
     int nextAddress = searchInFolder(sb, disk, address, list->start->text);
-    if (nextAddress < 0 && p) nextAddress = addNewItem(sb, disk, address, list->start->text, perm, content, size, type);
+    if (nextAddress < 0 && p) nextAddress = addNewItem(sb, disk, address, list->start->text, perm, content, size, 0);
     if (nextAddress < 0) return -1;
     popStringList(list);
     return makeNewItemInSystem(sb, disk, list, p, nextAddress, size, content, perm, type);
+}
+
+int findItemInSystem(SuperBlock *sb, FILE *disk, StringList *list, int address)
+{
+    if (list->start == NULL) return address;
+    Inode node;
+    int a = getInodeAddressByIndex(sb, address);
+    fseek(disk, a, SEEK_SET);
+    fread(&node, sizeof(Inode), 1, disk);
+    if (node.type != 0) return address;
+    int next = searchInFolder(sb, disk, address, list->start->text);
+    if (next < 0) return -1;
+    popStringList(list);
+    return findItemInSystem(sb, disk, list, next);
 }
 
 void makeNewDirectory(char path[], int p, int perm, PartitionNode *node)
@@ -1825,3 +1857,370 @@ void addFileBlock(SuperBlock *sb, FILE *disk, FileBlock *block, Inode *node)
 }
 
 
+void treeReport(PartitionNode *node)
+{
+    FILE *graph = fopen("tree.dot", "w");
+    FILE *diskFile = fopen(node->filePtr->path, "rb+");
+    SuperBlock superb;
+    fseek(diskFile, node->start, SEEK_SET);
+    fread(&superb, sizeof(superb), 1, diskFile);
+    fprintf(graph, "digraph g {\n");
+    fprintf(graph, "rankdir = LR;\n");
+    fprintf(graph, "graph [fontname = \"arial\"];\n");
+    fprintf(graph, "node [fontname = \"arial\"];\n");
+    fprintf(graph, "edge [fontname = \"arial\"];\n");
+    treeReportInode(&superb, diskFile, graph, 0);
+    fprintf(graph, "}\n");
+    fclose(graph);
+    fclose(diskFile);
+}
+
+void treeReportInode(SuperBlock *sb, FILE *disk, FILE *dot, int index)
+{
+    Inode inode;
+    fseek(disk, getInodeAddressByIndex(sb, index), SEEK_SET);
+    fread(&inode, sizeof(Inode), 1, disk);
+    char *color = inode.type ? "greenyellow" : "goldenrod1";
+    fprintf(dot, "\tin%i [shape=none, margin=0, label =<\n", index);
+    fprintf(dot, "\t\t<table border=\"0\" cellborder=\"1\" cellspacing=\"0\" bgcolor=\"%s\">\n", color);
+    fprintf(dot, "\t\t\t<tr> <td colspan = \"2\" PORT=\"p\">Inode %i</td> </tr>\n", index);
+    fprintf(dot, "\t\t\t<tr> <td>UID</td> <td>%i</td> </tr>\n", inode.uid);
+    fprintf(dot, "\t\t\t<tr> <td>GID</td> <td>%i</td> </tr>\n", inode.gid);
+    fprintf(dot, "\t\t\t<tr> <td>Size</td> <td>%i</td> </tr>\n", inode.size);
+    fprintf(dot, "\t\t\t<tr> <td>aTime</td> <td>%s</td> </tr>\n", inode.aTime);
+    fprintf(dot, "\t\t\t<tr> <td>cTime</td> <td>%s</td> </tr>\n", inode.cTime);
+    fprintf(dot, "\t\t\t<tr> <td>mTime</td> <td>%s</td> </tr>\n", inode.mTime);
+    fprintf(dot, "\t\t\t<tr> <td>Type</td> <td>%i</td> </tr>\n", inode.type);
+    fprintf(dot, "\t\t\t<tr> <td>Perm</td> <td>%i</td> </tr>\n", inode.perm);
+    for (int i = 0; i < 15; i++)
+    {
+        fprintf(dot, "\t\t\t<tr> <td>B%i</td> <td PORT = \"f%i\">%i</td> </tr>\n", i + 1, i, inode.block[i]);
+    }
+    fprintf(dot, "\t</table> >];\n\n");
+    for (int i = 0; i < 12; i++)
+    {
+        if (inode.block[i] != -1 && inode.type == 0)
+        {
+            treeReportFolderBlock(sb, disk, dot, inode.block[i]);
+            fprintf(dot, "\tin%i:f%i -> bl%i:p;\n", index, i, inode.block[i]);
+        }
+        else if (inode.block[i] != -1 && inode.type == 1)
+        {
+            treeReportFileBlock(sb, disk, dot, inode.block[i]);
+            fprintf(dot, "\tin%i:f%i -> bl%i:p;\n", index, i, inode.block[i]);
+        }
+    }
+}
+
+void treeReportFileBlock(SuperBlock *sb, FILE *disk, FILE *dot, int index)
+{
+    FileBlock flBlock;
+    fseek(disk, getBlockAddressByIndex(sb, index), SEEK_SET);
+    fread(&flBlock, sizeof(FileBlock), 1, disk);
+    fprintf(dot, "\tbl%i [shape=none, margin=0, label =<\n", index);
+    fprintf(dot, "\t\t<table border=\"0\" cellborder=\"1\" cellspacing=\"0\" bgcolor=\"lightblue\">\n");
+    fprintf(dot, "\t\t\t<tr> <td colspan = \"2\" PORT=\"p\">Block %i</td> </tr>\n", index);
+    fprintf(dot, "\t\t\t<tr> <td colspan = \"2\"> ");
+    for(int i = 0; i < 64 && flBlock.content[i] != 0; i++)
+    {
+        fprintf(dot, "%c", flBlock.content[i]);
+    }
+    fprintf(dot, " </td> </tr>\n");
+    fprintf(dot, "\t</table> >];\n\n");
+}
+
+void treeReportFolderBlock(SuperBlock *sb, FILE *disk, FILE *dot, int index)
+{
+    FolderBlock foBlock;
+    fseek(disk, getBlockAddressByIndex(sb, index), SEEK_SET);
+    fread(&foBlock, sizeof(FolderBlock), 1, disk);
+    fprintf(dot, "\tbl%i [shape=none, margin=0, label =<\n", index);
+    fprintf(dot, "\t\t<table border=\"0\" cellborder=\"1\" cellspacing=\"0\" bgcolor=\"sandybrown\">\n");
+    fprintf(dot, "\t\t\t<tr> <td colspan = \"2\" PORT=\"p\">Block %i</td> </tr>\n", index);
+    for (int i = 0; i < 4; i++)
+    {
+        fprintf(dot, "\t\t\t<tr> <td>%s</td> <td PORT = \"f%i\">%i</td> </tr>\n", foBlock.content[i].name, i, foBlock.content[i].inode);
+    }
+    fprintf(dot, "\t</table> >];\n\n");
+    for (int i = 0; i < 4; i++)
+    {
+        char name[16] = {0};
+        strcpy(name, foBlock.content[i].name);
+        if (foBlock.content[i].inode != -1 && strcmp(name, ".") && strcmp(name, ".."))
+        {
+            treeReportInode(sb, disk, dot, foBlock.content[i].inode);
+            fprintf(dot, "\tbl%i:f%i -> in%i:p;\n", index, i, foBlock.content[i].inode);
+        }
+    }
+}
+
+
+
+void bitmapInodeReport(PartitionNode *node, char path[])
+{
+    FILE *diskFile = fopen(node->filePtr->path, "rb+");
+    char dir[512] = {0};
+    char command[512] = {0};
+    strcpy(dir, path);
+    getDirectory(dir);
+    strcat(command, "mkdir -p -m a=rwx ");
+    strcat(command, dir);
+    system(command);
+    FILE *rep = fopen(path, "w");
+    if (!rep)
+    {
+        //ERROR
+        return;
+    }
+    SuperBlock sb;
+    fseek(diskFile, node->start, SEEK_SET);
+    fread(&sb, sizeof(SuperBlock), 1, diskFile);
+    for (int i = 0; i < sb.inodesCount; i++)
+    {
+        if (i != 0 && i % 20 == 0) fprintf(rep, "\n");
+        char c;
+        fseek(diskFile, sb.bmInodeStart + i, SEEK_SET);
+        fread(&c, sizeof(char), 1, diskFile);
+        fprintf(rep, "%i ", c);
+    }
+    fclose(diskFile);
+    fclose(rep);
+}
+void bitmapBlockReport(PartitionNode *node, char path[])
+{
+    FILE *diskFile = fopen(node->filePtr->path, "rb+");
+    char dir[512] = {0};
+    char command[512] = {0};
+    strcpy(dir, path);
+    getDirectory(dir);
+    strcat(command, "mkdir -p -m a=rwx ");
+    strcat(command, dir);
+    system(command);
+    FILE *rep = fopen(path, "w");
+    if (!rep)
+    {
+        //ERROR
+        return;
+    }
+    SuperBlock sb;
+    fseek(diskFile, node->start, SEEK_SET);
+    fread(&sb, sizeof(SuperBlock), 1, diskFile);
+    for (int i = 0; i < sb.blocksCount; i++)
+    {
+        if (i != 0 && i % 20 == 0) fprintf(rep, "\n");
+        char c;
+        fseek(diskFile, sb.bmBlockStart + i, SEEK_SET);
+        fread(&c, sizeof(char), 1, diskFile);
+        fprintf(rep, "%i ", c);
+    }
+    fclose(diskFile);
+    fclose(rep);
+}
+
+void listInodeReport(PartitionNode *node)
+{
+    FILE *diskFile = fopen(node->filePtr->path, "rb+");
+    FILE *dot = fopen("inode_list.dot", "w");
+    fprintf(dot, "digraph g {\n");
+    fprintf(dot, "rankdir = LR;\n");
+    fprintf(dot, "graph [fontname = \"arial\"];\n");
+    fprintf(dot, "node [fontname = \"arial\"];\n");
+    fprintf(dot, "edge [fontname = \"arial\"];\n");
+    SuperBlock sb;
+    fseek(diskFile, node->start, SEEK_SET);
+    fread(&sb, sizeof(SuperBlock), 1, diskFile);
+    int prev = -1;
+    for (int i = 0; i < sb.inodesCount; i++)
+    {
+        char c;
+        fseek(diskFile, sb.bmInodeStart + i, SEEK_SET);
+        fread(&c, sizeof(char), 1, diskFile);
+        if (!c) continue;
+        Inode inode;
+        fseek(diskFile, getInodeAddressByIndex(&sb, i), SEEK_SET);
+        fread(&inode, sizeof(Inode), 1, diskFile);
+        fprintf(dot, "\tin%i [shape=none, margin=0, label =<\n", i);
+        fprintf(dot, "\t\t<table border=\"0\" cellborder=\"1\" cellspacing=\"0\">\n");
+        fprintf(dot, "\t\t\t<tr> <td colspan = \"2\">Inode %i</td> </tr>\n", i);
+        fprintf(dot, "\t\t\t<tr> <td>UID</td> <td>%i</td> </tr>\n", inode.uid);
+        fprintf(dot, "\t\t\t<tr> <td>GID</td> <td>%i</td> </tr>\n", inode.gid);
+        fprintf(dot, "\t\t\t<tr> <td>Size</td> <td>%i</td> </tr>\n", inode.size);
+        fprintf(dot, "\t\t\t<tr> <td>aTime</td> <td>%s</td> </tr>\n", inode.aTime);
+        fprintf(dot, "\t\t\t<tr> <td>cTime</td> <td>%s</td> </tr>\n", inode.cTime);
+        fprintf(dot, "\t\t\t<tr> <td>mTime</td> <td>%s</td> </tr>\n", inode.mTime);
+        fprintf(dot, "\t\t\t<tr> <td>Type</td> <td>%i</td> </tr>\n", inode.type);
+        fprintf(dot, "\t\t\t<tr> <td>Perm</td> <td>%i</td> </tr>\n", inode.perm);
+        for (int j = 0; j < 15; j++)
+        {
+            fprintf(dot, "\t\t\t<tr> <td>B%i</td> <td>%i</td> </tr>\n", j + 1, inode.block[j]);
+        }
+        fprintf(dot, "\t</table> >];\n\n");
+        if (prev != -1)
+        {
+            fprintf(dot, "\tin%i -> in%i;\n", prev, i);
+        }
+        prev = i;
+    }
+    fprintf(dot, "}\n");
+    fclose(dot);
+    fclose(diskFile);
+}
+
+
+void listBlockReport(PartitionNode *node)
+{
+    FILE *diskFile = fopen(node->filePtr->path, "rb+");
+    FILE *dot = fopen("block_list.dot", "w");
+    fprintf(dot, "digraph g {\n");
+    fprintf(dot, "rankdir = LR;\n");
+    fprintf(dot, "graph [fontname = \"arial\"];\n");
+    fprintf(dot, "node [fontname = \"arial\"];\n");
+    fprintf(dot, "edge [fontname = \"arial\"];\n");
+    SuperBlock sb;
+    fseek(diskFile, node->start, SEEK_SET);
+    fread(&sb, sizeof(SuperBlock), 1, diskFile);
+    int prev = -1;
+    for (int i = 0; i < sb.inodesCount; i++)
+    {
+        char c;
+        fseek(diskFile, sb.bmInodeStart + i, SEEK_SET);
+        fread(&c, sizeof(char), 1, diskFile);
+        if (!c) continue;
+        Inode inode;
+        fseek(diskFile, getInodeAddressByIndex(&sb, i), SEEK_SET);
+        fread(&inode, sizeof(Inode), 1, diskFile);
+        for (int j = 0; j < 15; j++)
+        {
+            if (inode.block[j] == -1) continue;
+            int ad = getBlockAddressByIndex(&sb, inode.block[j]);
+            if (inode.type == 1)
+            {
+                FileBlock flBlock;
+                fseek(diskFile, ad, SEEK_SET);
+                fread(&flBlock, sizeof(FileBlock), 1, diskFile);
+                fprintf(dot, "\tbl%i [shape=none, margin=0, label =<\n", inode.block[j]);
+                fprintf(dot, "\t\t<table border=\"0\" cellborder=\"1\" cellspacing=\"0\">\n");
+                fprintf(dot, "\t\t\t<tr> <td colspan = \"2\">Block %i</td> </tr>\n", inode.block[j]);
+                fprintf(dot, "\t\t\t<tr> <td colspan = \"2\"> ");
+                for(int k = 0; k < 64 && flBlock.content[k] != 0; k++)
+                {
+                    fprintf(dot, "%c", flBlock.content[k]);
+                }
+                fprintf(dot, " </td> </tr>\n");
+                fprintf(dot, "\t</table> >];\n\n");
+            }
+            else
+            {
+                FolderBlock foBlock;
+                fseek(diskFile, ad, SEEK_SET);
+                fread(&foBlock, sizeof(FolderBlock), 1, diskFile);
+                fprintf(dot, "\tbl%i [shape=none, margin=0, label =<\n", inode.block[j]);
+                fprintf(dot, "\t\t<table border=\"0\" cellborder=\"1\" cellspacing=\"0\">\n");
+                fprintf(dot, "\t\t\t<tr> <td colspan = \"2\" PORT=\"p\">Block %i</td> </tr>\n", inode.block[j]);
+                for (int k = 0; k < 4; k++)
+                {
+                    fprintf(dot, "\t\t\t<tr> <td>%s</td> <td>%i</td> </tr>\n", foBlock.content[k].name, foBlock.content[k].inode);
+                }
+                fprintf(dot, "\t</table> >];\n\n");
+            }
+            if (prev != -1)
+            {
+                fprintf(dot, "\tbl%i -> bl%i;\n", prev, inode.block[j]);
+            }
+            prev = inode.block[j];
+        }
+    }
+    fprintf(dot, "}\n");
+    fclose(dot);
+    fclose(diskFile);
+}
+
+
+void superBlockReport(PartitionNode *node)
+{
+    FILE *diskFile = fopen(node->filePtr->path, "rb+");
+    FILE *dot = fopen("superblock.dot", "w");
+    fprintf(dot, "digraph g {\n");
+    fprintf(dot, "rankdir = LR;\n");
+    fprintf(dot, "graph [fontname = \"arial\"];\n");
+    fprintf(dot, "node [fontname = \"arial\"];\n");
+    fprintf(dot, "edge [fontname = \"arial\"];\n");
+    SuperBlock sb;
+    fseek(diskFile, node->start, SEEK_SET);
+    fread(&sb, sizeof(SuperBlock), 1, diskFile);
+    fprintf(dot, "\tblsupinterb [shape=none, margin=0, label =<\n");
+    fprintf(dot, "\t\t<table border=\"0\" cellborder=\"1\" cellspacing=\"0\">\n");
+    fprintf(dot, "\t\t\t<tr> <td colspan = \"2\">SuperBloque</td> </tr>\n");
+    fprintf(dot, "\t\t\t<tr> <td>Inodes Count</td> <td>%i</td> </tr>\n", sb.inodesCount);
+    fprintf(dot, "\t\t\t<tr> <td>Blocks Count</td> <td>%i</td> </tr>\n", sb.blocksCount);
+    fprintf(dot, "\t\t\t<tr> <td>Free Blocks</td> <td>%i</td> </tr>\n", sb.freeBlockCount);
+    fprintf(dot, "\t\t\t<tr> <td>Free Inodes</td> <td>%i</td> </tr>\n", sb.freeInodesCount);
+    fprintf(dot, "\t\t\t<tr> <td>Mount Time</td> <td>%s</td> </tr>\n", sb.mountTime);
+    fprintf(dot, "\t\t\t<tr> <td>Unmount Time</td> <td>%s</td> </tr>\n", sb.unmountTime);
+    fprintf(dot, "\t\t\t<tr> <td>Mount Count</td> <td>%i</td> </tr>\n", sb.mountCount);
+    fprintf(dot, "\t\t\t<tr> <td>Magic</td> <td>%X</td> </tr>\n", sb.magic);
+    fprintf(dot, "\t\t\t<tr> <td>Inode Size</td> <td>%i</td> </tr>\n", sb.inodeSize);
+    fprintf(dot, "\t\t\t<tr> <td>Block Size</td> <td>%i</td> </tr>\n", sb.blockSize);
+    fprintf(dot, "\t\t\t<tr> <td>First Inode</td> <td>%i</td> </tr>\n", sb.firstInode);
+    fprintf(dot, "\t\t\t<tr> <td>First Block</td> <td>%i</td> </tr>\n", sb.firstBlock);
+    fprintf(dot, "\t\t\t<tr> <td>Inode BM Start</td> <td>%i</td> </tr>\n", sb.bmInodeStart);
+    fprintf(dot, "\t\t\t<tr> <td>Block BM Start</td> <td>%i</td> </tr>\n", sb.bmBlockStart);
+    fprintf(dot, "\t\t\t<tr> <td>Inode Start</td> <td>%i</td> </tr>\n", sb.inodeStart);
+    fprintf(dot, "\t\t\t<tr> <td>Block Start</td> <td>%i</td> </tr>\n", sb.blockStart);
+    fprintf(dot, "\t</table> >];\n\n");
+    fprintf(dot, "}\n");
+    fclose(dot);
+    fclose(diskFile);
+}
+
+void fileReport(PartitionNode *partNode, char systemPath[], char destinyPath[])
+{
+    FILE *diskFile = fopen(partNode->filePtr->path, "rb+");
+    char dir[512] = {0};
+    char command[512] = {0};
+    strcpy(dir, destinyPath);
+    getDirectory(dir);
+    strcat(command, "mkdir -p -m a=rwx ");
+    strcat(command, dir);
+    system(command);
+    FILE *rep = fopen(destinyPath, "w");
+    if (!rep)
+    {
+        //ERROR
+        return;
+    }
+    SuperBlock sb;
+    fseek(diskFile, partNode->start, SEEK_SET);
+    fread(&sb, sizeof(SuperBlock), 1, diskFile);
+    StringList *slist = makePathToList(systemPath);
+    int index = findItemInSystem(&sb, diskFile, slist, 0);
+    if(index < 0)
+    {
+        fclose(diskFile);
+        fclose(rep);
+        return;
+    }
+    Inode node;
+    fseek(diskFile, getInodeAddressByIndex(&sb, index), SEEK_SET);
+    fread(&node, sizeof(Inode), 1, diskFile);
+    if (node.type != 1)
+    {
+        fclose(diskFile);
+        fclose(rep);
+        return;
+    }
+    for(int i = 0; i < 12; i++)
+    {
+        if (node.block[i] == -1) continue;
+        FileBlock fb;
+        int add = getBlockAddressByIndex(&sb, node.block[i]);
+        fseek(diskFile, add, SEEK_SET);
+        fread(&fb, sizeof(FileBlock), 1, diskFile);
+        for(int j = 0; j < 64 && fb.content[j] != 0; j++)
+        {
+            fprintf(rep, "%c", fb.content[j]);
+        }
+    }
+    fclose(diskFile);
+    fclose(rep);
+}

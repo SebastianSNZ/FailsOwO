@@ -1,0 +1,162 @@
+digraph g {
+rankdir = LR;
+graph [fontname = "arial"];
+node [fontname = "arial"];
+edge [fontname = "arial"];
+	bl0 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2" PORT="p">Block 0</td> </tr>
+			<tr> <td>.</td> <td>0</td> </tr>
+			<tr> <td>..</td> <td>0</td> </tr>
+			<tr> <td>home</td> <td>1</td> </tr>
+			<tr> <td>dev</td> <td>2</td> </tr>
+	</table> >];
+
+	bl3 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2" PORT="p">Block 3</td> </tr>
+			<tr> <td>bin</td> <td>3</td> </tr>
+			<tr> <td></td> <td>-1</td> </tr>
+			<tr> <td></td> <td>-1</td> </tr>
+			<tr> <td></td> <td>-1</td> </tr>
+	</table> >];
+
+	bl0 -> bl3;
+	bl1 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2" PORT="p">Block 1</td> </tr>
+			<tr> <td>.</td> <td>1</td> </tr>
+			<tr> <td>..</td> <td>0</td> </tr>
+			<tr> <td>ayuda</td> <td>4</td> </tr>
+			<tr> <td>coso</td> <td>6</td> </tr>
+	</table> >];
+
+	bl3 -> bl1;
+	bl2 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2" PORT="p">Block 2</td> </tr>
+			<tr> <td>.</td> <td>2</td> </tr>
+			<tr> <td>..</td> <td>0</td> </tr>
+			<tr> <td></td> <td>-1</td> </tr>
+			<tr> <td></td> <td>-1</td> </tr>
+	</table> >];
+
+	bl1 -> bl2;
+	bl4 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2" PORT="p">Block 4</td> </tr>
+			<tr> <td>.</td> <td>3</td> </tr>
+			<tr> <td>..</td> <td>0</td> </tr>
+			<tr> <td></td> <td>-1</td> </tr>
+			<tr> <td></td> <td>-1</td> </tr>
+	</table> >];
+
+	bl2 -> bl4;
+	bl5 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2" PORT="p">Block 5</td> </tr>
+			<tr> <td>.</td> <td>4</td> </tr>
+			<tr> <td>..</td> <td>1</td> </tr>
+			<tr> <td>texto.txt</td> <td>5</td> </tr>
+			<tr> <td></td> <td>-1</td> </tr>
+	</table> >];
+
+	bl4 -> bl5;
+	bl6 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2">Block 6</td> </tr>
+			<tr> <td colspan = "2"> 0123456789012345678901234567890123456789012345678901234567890123 </td> </tr>
+	</table> >];
+
+	bl5 -> bl6;
+	bl7 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2">Block 7</td> </tr>
+			<tr> <td colspan = "2"> 4567890123456789012345678901234567890123456789012345678901234567 </td> </tr>
+	</table> >];
+
+	bl6 -> bl7;
+	bl8 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2">Block 8</td> </tr>
+			<tr> <td colspan = "2"> 8901234567890123456789012345678901234567890123456789012345678901 </td> </tr>
+	</table> >];
+
+	bl7 -> bl8;
+	bl9 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2">Block 9</td> </tr>
+			<tr> <td colspan = "2"> 2345678901234567890123456789012345678901234567890123456789012345 </td> </tr>
+	</table> >];
+
+	bl8 -> bl9;
+	bl10 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2">Block 10</td> </tr>
+			<tr> <td colspan = "2"> 6789012345678901234567890123456789012345678901234567890123456789 </td> </tr>
+	</table> >];
+
+	bl9 -> bl10;
+	bl11 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2">Block 11</td> </tr>
+			<tr> <td colspan = "2"> 0123456789012345678901234567890123456789012345678901234567890123 </td> </tr>
+	</table> >];
+
+	bl10 -> bl11;
+	bl12 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2">Block 12</td> </tr>
+			<tr> <td colspan = "2"> 4567890123456789012345678901234567890123456789012345678901234567 </td> </tr>
+	</table> >];
+
+	bl11 -> bl12;
+	bl13 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2">Block 13</td> </tr>
+			<tr> <td colspan = "2"> 8901234567890123456789012345678901234567890123456789012345678901 </td> </tr>
+	</table> >];
+
+	bl12 -> bl13;
+	bl14 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2" PORT="p">Block 14</td> </tr>
+			<tr> <td>.</td> <td>6</td> </tr>
+			<tr> <td>..</td> <td>1</td> </tr>
+			<tr> <td>texto.txt</td> <td>7</td> </tr>
+			<tr> <td></td> <td>-1</td> </tr>
+	</table> >];
+
+	bl13 -> bl14;
+	bl15 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2">Block 15</td> </tr>
+			<tr> <td colspan = "2"> Hola me llamo sebastian y dark souls es el mejor videojuego de l </td> </tr>
+	</table> >];
+
+	bl14 -> bl15;
+	bl16 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2">Block 16</td> </tr>
+			<tr> <td colspan = "2"> a historia.
+Hidetaka Miyazaki realizo
+esta obra maestra en 2011  </td> </tr>
+	</table> >];
+
+	bl15 -> bl16;
+	bl17 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2">Block 17</td> </tr>
+			<tr> <td colspan = "2"> y desde entonces creo 
+un videojuego que ha influido a miles de  </td> </tr>
+	</table> >];
+
+	bl16 -> bl17;
+	bl18 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2">Block 18</td> </tr>
+			<tr> <td colspan = "2"> creadores independientes y no tan independientes. </td> </tr>
+	</table> >];
+
+	bl17 -> bl18;
+}
