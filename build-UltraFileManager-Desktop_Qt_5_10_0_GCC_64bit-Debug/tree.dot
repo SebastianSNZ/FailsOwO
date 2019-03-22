@@ -9,9 +9,9 @@ edge [fontname = "arial"];
 			<tr> <td>UID</td> <td>1</td> </tr>
 			<tr> <td>GID</td> <td>1</td> </tr>
 			<tr> <td>Size</td> <td>0</td> </tr>
-			<tr> <td>aTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>cTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>mTime</td> <td>20/03/19 20:25</td> </tr>
+			<tr> <td>aTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>cTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>mTime</td> <td>21/03/19 23:41</td> </tr>
 			<tr> <td>Type</td> <td>0</td> </tr>
 			<tr> <td>Perm</td> <td>0</td> </tr>
 			<tr> <td>B1</td> <td PORT = "f0">0</td> </tr>
@@ -36,25 +36,25 @@ edge [fontname = "arial"];
 			<tr> <td colspan = "2" PORT="p">Block 0</td> </tr>
 			<tr> <td>.</td> <td PORT = "f0">0</td> </tr>
 			<tr> <td>..</td> <td PORT = "f1">0</td> </tr>
-			<tr> <td>home</td> <td PORT = "f2">1</td> </tr>
-			<tr> <td>dev</td> <td PORT = "f3">2</td> </tr>
+			<tr> <td>users.txt</td> <td PORT = "f2">1</td> </tr>
+			<tr> <td>home</td> <td PORT = "f3">2</td> </tr>
 	</table> >];
 
 	in1 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="goldenrod1">
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="greenyellow">
 			<tr> <td colspan = "2" PORT="p">Inode 1</td> </tr>
 			<tr> <td>UID</td> <td>0</td> </tr>
 			<tr> <td>GID</td> <td>0</td> </tr>
-			<tr> <td>Size</td> <td>0</td> </tr>
-			<tr> <td>aTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>cTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>mTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>Type</td> <td>0</td> </tr>
-			<tr> <td>Perm</td> <td>664</td> </tr>
+			<tr> <td>Size</td> <td>193</td> </tr>
+			<tr> <td>aTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>cTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>mTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>Type</td> <td>1</td> </tr>
+			<tr> <td>Perm</td> <td>0</td> </tr>
 			<tr> <td>B1</td> <td PORT = "f0">1</td> </tr>
-			<tr> <td>B2</td> <td PORT = "f1">-1</td> </tr>
-			<tr> <td>B3</td> <td PORT = "f2">-1</td> </tr>
-			<tr> <td>B4</td> <td PORT = "f3">-1</td> </tr>
+			<tr> <td>B2</td> <td PORT = "f1">20</td> </tr>
+			<tr> <td>B3</td> <td PORT = "f2">21</td> </tr>
+			<tr> <td>B4</td> <td PORT = "f3">22</td> </tr>
 			<tr> <td>B5</td> <td PORT = "f4">-1</td> </tr>
 			<tr> <td>B6</td> <td PORT = "f5">-1</td> </tr>
 			<tr> <td>B7</td> <td PORT = "f6">-1</td> </tr>
@@ -69,238 +69,40 @@ edge [fontname = "arial"];
 	</table> >];
 
 	bl1 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="sandybrown">
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
 			<tr> <td colspan = "2" PORT="p">Block 1</td> </tr>
-			<tr> <td>.</td> <td PORT = "f0">1</td> </tr>
-			<tr> <td>..</td> <td PORT = "f1">0</td> </tr>
-			<tr> <td>ayuda</td> <td PORT = "f2">4</td> </tr>
-			<tr> <td>coso</td> <td PORT = "f3">6</td> </tr>
+			<tr> <td colspan = "2"> 1,G,root      
+1,U,root      ,root      ,123       
+2,G,hola     </td> </tr>
 	</table> >];
 
-	in4 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="goldenrod1">
-			<tr> <td colspan = "2" PORT="p">Inode 4</td> </tr>
-			<tr> <td>UID</td> <td>0</td> </tr>
-			<tr> <td>GID</td> <td>0</td> </tr>
-			<tr> <td>Size</td> <td>0</td> </tr>
-			<tr> <td>aTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>cTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>mTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>Type</td> <td>0</td> </tr>
-			<tr> <td>Perm</td> <td>664</td> </tr>
-			<tr> <td>B1</td> <td PORT = "f0">5</td> </tr>
-			<tr> <td>B2</td> <td PORT = "f1">-1</td> </tr>
-			<tr> <td>B3</td> <td PORT = "f2">-1</td> </tr>
-			<tr> <td>B4</td> <td PORT = "f3">-1</td> </tr>
-			<tr> <td>B5</td> <td PORT = "f4">-1</td> </tr>
-			<tr> <td>B6</td> <td PORT = "f5">-1</td> </tr>
-			<tr> <td>B7</td> <td PORT = "f6">-1</td> </tr>
-			<tr> <td>B8</td> <td PORT = "f7">-1</td> </tr>
-			<tr> <td>B9</td> <td PORT = "f8">-1</td> </tr>
-			<tr> <td>B10</td> <td PORT = "f9">-1</td> </tr>
-			<tr> <td>B11</td> <td PORT = "f10">-1</td> </tr>
-			<tr> <td>B12</td> <td PORT = "f11">-1</td> </tr>
-			<tr> <td>B13</td> <td PORT = "f12">-1</td> </tr>
-			<tr> <td>B14</td> <td PORT = "f13">-1</td> </tr>
-			<tr> <td>B15</td> <td PORT = "f14">-1</td> </tr>
-	</table> >];
-
-	bl5 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="sandybrown">
-			<tr> <td colspan = "2" PORT="p">Block 5</td> </tr>
-			<tr> <td>.</td> <td PORT = "f0">4</td> </tr>
-			<tr> <td>..</td> <td PORT = "f1">1</td> </tr>
-			<tr> <td>texto.txt</td> <td PORT = "f2">5</td> </tr>
-			<tr> <td></td> <td PORT = "f3">-1</td> </tr>
-	</table> >];
-
-	in5 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="greenyellow">
-			<tr> <td colspan = "2" PORT="p">Inode 5</td> </tr>
-			<tr> <td>UID</td> <td>0</td> </tr>
-			<tr> <td>GID</td> <td>0</td> </tr>
-			<tr> <td>Size</td> <td>512</td> </tr>
-			<tr> <td>aTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>cTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>mTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>Type</td> <td>1</td> </tr>
-			<tr> <td>Perm</td> <td>664</td> </tr>
-			<tr> <td>B1</td> <td PORT = "f0">6</td> </tr>
-			<tr> <td>B2</td> <td PORT = "f1">7</td> </tr>
-			<tr> <td>B3</td> <td PORT = "f2">8</td> </tr>
-			<tr> <td>B4</td> <td PORT = "f3">9</td> </tr>
-			<tr> <td>B5</td> <td PORT = "f4">10</td> </tr>
-			<tr> <td>B6</td> <td PORT = "f5">11</td> </tr>
-			<tr> <td>B7</td> <td PORT = "f6">12</td> </tr>
-			<tr> <td>B8</td> <td PORT = "f7">13</td> </tr>
-			<tr> <td>B9</td> <td PORT = "f8">-1</td> </tr>
-			<tr> <td>B10</td> <td PORT = "f9">-1</td> </tr>
-			<tr> <td>B11</td> <td PORT = "f10">-1</td> </tr>
-			<tr> <td>B12</td> <td PORT = "f11">-1</td> </tr>
-			<tr> <td>B13</td> <td PORT = "f12">-1</td> </tr>
-			<tr> <td>B14</td> <td PORT = "f13">-1</td> </tr>
-			<tr> <td>B15</td> <td PORT = "f14">-1</td> </tr>
-	</table> >];
-
-	bl6 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
-			<tr> <td colspan = "2" PORT="p">Block 6</td> </tr>
-			<tr> <td colspan = "2"> 0123456789012345678901234567890123456789012345678901234567890123 </td> </tr>
-	</table> >];
-
-	in5:f0 -> bl6:p;
-	bl7 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
-			<tr> <td colspan = "2" PORT="p">Block 7</td> </tr>
-			<tr> <td colspan = "2"> 4567890123456789012345678901234567890123456789012345678901234567 </td> </tr>
-	</table> >];
-
-	in5:f1 -> bl7:p;
-	bl8 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
-			<tr> <td colspan = "2" PORT="p">Block 8</td> </tr>
-			<tr> <td colspan = "2"> 8901234567890123456789012345678901234567890123456789012345678901 </td> </tr>
-	</table> >];
-
-	in5:f2 -> bl8:p;
-	bl9 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
-			<tr> <td colspan = "2" PORT="p">Block 9</td> </tr>
-			<tr> <td colspan = "2"> 2345678901234567890123456789012345678901234567890123456789012345 </td> </tr>
-	</table> >];
-
-	in5:f3 -> bl9:p;
-	bl10 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
-			<tr> <td colspan = "2" PORT="p">Block 10</td> </tr>
-			<tr> <td colspan = "2"> 6789012345678901234567890123456789012345678901234567890123456789 </td> </tr>
-	</table> >];
-
-	in5:f4 -> bl10:p;
-	bl11 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
-			<tr> <td colspan = "2" PORT="p">Block 11</td> </tr>
-			<tr> <td colspan = "2"> 0123456789012345678901234567890123456789012345678901234567890123 </td> </tr>
-	</table> >];
-
-	in5:f5 -> bl11:p;
-	bl12 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
-			<tr> <td colspan = "2" PORT="p">Block 12</td> </tr>
-			<tr> <td colspan = "2"> 4567890123456789012345678901234567890123456789012345678901234567 </td> </tr>
-	</table> >];
-
-	in5:f6 -> bl12:p;
-	bl13 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
-			<tr> <td colspan = "2" PORT="p">Block 13</td> </tr>
-			<tr> <td colspan = "2"> 8901234567890123456789012345678901234567890123456789012345678901 </td> </tr>
-	</table> >];
-
-	in5:f7 -> bl13:p;
-	bl5:f2 -> in5:p;
-	in4:f0 -> bl5:p;
-	bl1:f2 -> in4:p;
-	in6 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="goldenrod1">
-			<tr> <td colspan = "2" PORT="p">Inode 6</td> </tr>
-			<tr> <td>UID</td> <td>0</td> </tr>
-			<tr> <td>GID</td> <td>0</td> </tr>
-			<tr> <td>Size</td> <td>0</td> </tr>
-			<tr> <td>aTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>cTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>mTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>Type</td> <td>0</td> </tr>
-			<tr> <td>Perm</td> <td>777</td> </tr>
-			<tr> <td>B1</td> <td PORT = "f0">14</td> </tr>
-			<tr> <td>B2</td> <td PORT = "f1">-1</td> </tr>
-			<tr> <td>B3</td> <td PORT = "f2">-1</td> </tr>
-			<tr> <td>B4</td> <td PORT = "f3">-1</td> </tr>
-			<tr> <td>B5</td> <td PORT = "f4">-1</td> </tr>
-			<tr> <td>B6</td> <td PORT = "f5">-1</td> </tr>
-			<tr> <td>B7</td> <td PORT = "f6">-1</td> </tr>
-			<tr> <td>B8</td> <td PORT = "f7">-1</td> </tr>
-			<tr> <td>B9</td> <td PORT = "f8">-1</td> </tr>
-			<tr> <td>B10</td> <td PORT = "f9">-1</td> </tr>
-			<tr> <td>B11</td> <td PORT = "f10">-1</td> </tr>
-			<tr> <td>B12</td> <td PORT = "f11">-1</td> </tr>
-			<tr> <td>B13</td> <td PORT = "f12">-1</td> </tr>
-			<tr> <td>B14</td> <td PORT = "f13">-1</td> </tr>
-			<tr> <td>B15</td> <td PORT = "f14">-1</td> </tr>
-	</table> >];
-
-	bl14 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="sandybrown">
-			<tr> <td colspan = "2" PORT="p">Block 14</td> </tr>
-			<tr> <td>.</td> <td PORT = "f0">6</td> </tr>
-			<tr> <td>..</td> <td PORT = "f1">1</td> </tr>
-			<tr> <td>texto.txt</td> <td PORT = "f2">7</td> </tr>
-			<tr> <td></td> <td PORT = "f3">-1</td> </tr>
-	</table> >];
-
-	in7 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="greenyellow">
-			<tr> <td colspan = "2" PORT="p">Inode 7</td> </tr>
-			<tr> <td>UID</td> <td>0</td> </tr>
-			<tr> <td>GID</td> <td>0</td> </tr>
-			<tr> <td>Size</td> <td>0</td> </tr>
-			<tr> <td>aTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>cTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>mTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>Type</td> <td>1</td> </tr>
-			<tr> <td>Perm</td> <td>777</td> </tr>
-			<tr> <td>B1</td> <td PORT = "f0">15</td> </tr>
-			<tr> <td>B2</td> <td PORT = "f1">16</td> </tr>
-			<tr> <td>B3</td> <td PORT = "f2">17</td> </tr>
-			<tr> <td>B4</td> <td PORT = "f3">18</td> </tr>
-			<tr> <td>B5</td> <td PORT = "f4">-1</td> </tr>
-			<tr> <td>B6</td> <td PORT = "f5">-1</td> </tr>
-			<tr> <td>B7</td> <td PORT = "f6">-1</td> </tr>
-			<tr> <td>B8</td> <td PORT = "f7">-1</td> </tr>
-			<tr> <td>B9</td> <td PORT = "f8">-1</td> </tr>
-			<tr> <td>B10</td> <td PORT = "f9">-1</td> </tr>
-			<tr> <td>B11</td> <td PORT = "f10">-1</td> </tr>
-			<tr> <td>B12</td> <td PORT = "f11">-1</td> </tr>
-			<tr> <td>B13</td> <td PORT = "f12">-1</td> </tr>
-			<tr> <td>B14</td> <td PORT = "f13">-1</td> </tr>
-			<tr> <td>B15</td> <td PORT = "f14">-1</td> </tr>
-	</table> >];
-
-	bl15 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
-			<tr> <td colspan = "2" PORT="p">Block 15</td> </tr>
-			<tr> <td colspan = "2"> Hola me llamo sebastian y dark souls es el mejor videojuego de l </td> </tr>
-	</table> >];
-
-	in7:f0 -> bl15:p;
-	bl16 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
-			<tr> <td colspan = "2" PORT="p">Block 16</td> </tr>
-			<tr> <td colspan = "2"> a historia.
-Hidetaka Miyazaki realizo
-esta obra maestra en 2011  </td> </tr>
-	</table> >];
-
-	in7:f1 -> bl16:p;
-	bl17 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
-			<tr> <td colspan = "2" PORT="p">Block 17</td> </tr>
-			<tr> <td colspan = "2"> y desde entonces creo 
-un videojuego que ha influido a miles de  </td> </tr>
-	</table> >];
-
-	in7:f2 -> bl17:p;
-	bl18 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
-			<tr> <td colspan = "2" PORT="p">Block 18</td> </tr>
-			<tr> <td colspan = "2"> creadores independientes y no tan independientes. </td> </tr>
-	</table> >];
-
-	in7:f3 -> bl18:p;
-	bl14:f2 -> in7:p;
-	in6:f0 -> bl14:p;
-	bl1:f3 -> in6:p;
 	in1:f0 -> bl1:p;
+	bl20 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
+			<tr> <td colspan = "2" PORT="p">Block 20</td> </tr>
+			<tr> <td colspan = "2">   
+2,U,hola      ,sebas     ,nacho     
+3,U,hola      ,sanchez   </td> </tr>
+	</table> >];
+
+	in1:f1 -> bl20:p;
+	bl21 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
+			<tr> <td colspan = "2" PORT="p">Block 21</td> </tr>
+			<tr> <td colspan = "2">  ,nacho     
+4,U,hola      ,tuchez    ,nacho     
+3,G,familia    </td> </tr>
+	</table> >];
+
+	in1:f2 -> bl21:p;
+	bl22 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
+			<tr> <td colspan = "2" PORT="p">Block 22</td> </tr>
+			<tr> <td colspan = "2"> 
+ </td> </tr>
+	</table> >];
+
+	in1:f3 -> bl22:p;
 	bl0:f2 -> in1:p;
 	in2 [shape=none, margin=0, label =<
 		<table border="0" cellborder="1" cellspacing="0" bgcolor="goldenrod1">
@@ -308,9 +110,9 @@ un videojuego que ha influido a miles de  </td> </tr>
 			<tr> <td>UID</td> <td>0</td> </tr>
 			<tr> <td>GID</td> <td>0</td> </tr>
 			<tr> <td>Size</td> <td>0</td> </tr>
-			<tr> <td>aTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>cTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>mTime</td> <td>20/03/19 20:25</td> </tr>
+			<tr> <td>aTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>cTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>mTime</td> <td>21/03/19 23:41</td> </tr>
 			<tr> <td>Type</td> <td>0</td> </tr>
 			<tr> <td>Perm</td> <td>664</td> </tr>
 			<tr> <td>B1</td> <td PORT = "f0">2</td> </tr>
@@ -335,18 +137,241 @@ un videojuego que ha influido a miles de  </td> </tr>
 			<tr> <td colspan = "2" PORT="p">Block 2</td> </tr>
 			<tr> <td>.</td> <td PORT = "f0">2</td> </tr>
 			<tr> <td>..</td> <td PORT = "f1">0</td> </tr>
-			<tr> <td></td> <td PORT = "f2">-1</td> </tr>
+			<tr> <td>ayuda</td> <td PORT = "f2">5</td> </tr>
+			<tr> <td>coso</td> <td PORT = "f3">7</td> </tr>
+	</table> >];
+
+	in5 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="goldenrod1">
+			<tr> <td colspan = "2" PORT="p">Inode 5</td> </tr>
+			<tr> <td>UID</td> <td>0</td> </tr>
+			<tr> <td>GID</td> <td>0</td> </tr>
+			<tr> <td>Size</td> <td>0</td> </tr>
+			<tr> <td>aTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>cTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>mTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>Type</td> <td>0</td> </tr>
+			<tr> <td>Perm</td> <td>664</td> </tr>
+			<tr> <td>B1</td> <td PORT = "f0">6</td> </tr>
+			<tr> <td>B2</td> <td PORT = "f1">-1</td> </tr>
+			<tr> <td>B3</td> <td PORT = "f2">-1</td> </tr>
+			<tr> <td>B4</td> <td PORT = "f3">-1</td> </tr>
+			<tr> <td>B5</td> <td PORT = "f4">-1</td> </tr>
+			<tr> <td>B6</td> <td PORT = "f5">-1</td> </tr>
+			<tr> <td>B7</td> <td PORT = "f6">-1</td> </tr>
+			<tr> <td>B8</td> <td PORT = "f7">-1</td> </tr>
+			<tr> <td>B9</td> <td PORT = "f8">-1</td> </tr>
+			<tr> <td>B10</td> <td PORT = "f9">-1</td> </tr>
+			<tr> <td>B11</td> <td PORT = "f10">-1</td> </tr>
+			<tr> <td>B12</td> <td PORT = "f11">-1</td> </tr>
+			<tr> <td>B13</td> <td PORT = "f12">-1</td> </tr>
+			<tr> <td>B14</td> <td PORT = "f13">-1</td> </tr>
+			<tr> <td>B15</td> <td PORT = "f14">-1</td> </tr>
+	</table> >];
+
+	bl6 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="sandybrown">
+			<tr> <td colspan = "2" PORT="p">Block 6</td> </tr>
+			<tr> <td>.</td> <td PORT = "f0">5</td> </tr>
+			<tr> <td>..</td> <td PORT = "f1">2</td> </tr>
+			<tr> <td>texto.txt</td> <td PORT = "f2">6</td> </tr>
 			<tr> <td></td> <td PORT = "f3">-1</td> </tr>
 	</table> >];
 
+	in6 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="greenyellow">
+			<tr> <td colspan = "2" PORT="p">Inode 6</td> </tr>
+			<tr> <td>UID</td> <td>0</td> </tr>
+			<tr> <td>GID</td> <td>0</td> </tr>
+			<tr> <td>Size</td> <td>512</td> </tr>
+			<tr> <td>aTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>cTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>mTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>Type</td> <td>1</td> </tr>
+			<tr> <td>Perm</td> <td>664</td> </tr>
+			<tr> <td>B1</td> <td PORT = "f0">7</td> </tr>
+			<tr> <td>B2</td> <td PORT = "f1">8</td> </tr>
+			<tr> <td>B3</td> <td PORT = "f2">9</td> </tr>
+			<tr> <td>B4</td> <td PORT = "f3">10</td> </tr>
+			<tr> <td>B5</td> <td PORT = "f4">11</td> </tr>
+			<tr> <td>B6</td> <td PORT = "f5">12</td> </tr>
+			<tr> <td>B7</td> <td PORT = "f6">13</td> </tr>
+			<tr> <td>B8</td> <td PORT = "f7">14</td> </tr>
+			<tr> <td>B9</td> <td PORT = "f8">-1</td> </tr>
+			<tr> <td>B10</td> <td PORT = "f9">-1</td> </tr>
+			<tr> <td>B11</td> <td PORT = "f10">-1</td> </tr>
+			<tr> <td>B12</td> <td PORT = "f11">-1</td> </tr>
+			<tr> <td>B13</td> <td PORT = "f12">-1</td> </tr>
+			<tr> <td>B14</td> <td PORT = "f13">-1</td> </tr>
+			<tr> <td>B15</td> <td PORT = "f14">-1</td> </tr>
+	</table> >];
+
+	bl7 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
+			<tr> <td colspan = "2" PORT="p">Block 7</td> </tr>
+			<tr> <td colspan = "2"> 0123456789012345678901234567890123456789012345678901234567890123 </td> </tr>
+	</table> >];
+
+	in6:f0 -> bl7:p;
+	bl8 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
+			<tr> <td colspan = "2" PORT="p">Block 8</td> </tr>
+			<tr> <td colspan = "2"> 4567890123456789012345678901234567890123456789012345678901234567 </td> </tr>
+	</table> >];
+
+	in6:f1 -> bl8:p;
+	bl9 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
+			<tr> <td colspan = "2" PORT="p">Block 9</td> </tr>
+			<tr> <td colspan = "2"> 8901234567890123456789012345678901234567890123456789012345678901 </td> </tr>
+	</table> >];
+
+	in6:f2 -> bl9:p;
+	bl10 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
+			<tr> <td colspan = "2" PORT="p">Block 10</td> </tr>
+			<tr> <td colspan = "2"> 2345678901234567890123456789012345678901234567890123456789012345 </td> </tr>
+	</table> >];
+
+	in6:f3 -> bl10:p;
+	bl11 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
+			<tr> <td colspan = "2" PORT="p">Block 11</td> </tr>
+			<tr> <td colspan = "2"> 6789012345678901234567890123456789012345678901234567890123456789 </td> </tr>
+	</table> >];
+
+	in6:f4 -> bl11:p;
+	bl12 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
+			<tr> <td colspan = "2" PORT="p">Block 12</td> </tr>
+			<tr> <td colspan = "2"> 0123456789012345678901234567890123456789012345678901234567890123 </td> </tr>
+	</table> >];
+
+	in6:f5 -> bl12:p;
+	bl13 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
+			<tr> <td colspan = "2" PORT="p">Block 13</td> </tr>
+			<tr> <td colspan = "2"> 4567890123456789012345678901234567890123456789012345678901234567 </td> </tr>
+	</table> >];
+
+	in6:f6 -> bl13:p;
+	bl14 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
+			<tr> <td colspan = "2" PORT="p">Block 14</td> </tr>
+			<tr> <td colspan = "2"> 8901234567890123456789012345678901234567890123456789012345678901 </td> </tr>
+	</table> >];
+
+	in6:f7 -> bl14:p;
+	bl6:f2 -> in6:p;
+	in5:f0 -> bl6:p;
+	bl2:f2 -> in5:p;
+	in7 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="goldenrod1">
+			<tr> <td colspan = "2" PORT="p">Inode 7</td> </tr>
+			<tr> <td>UID</td> <td>0</td> </tr>
+			<tr> <td>GID</td> <td>0</td> </tr>
+			<tr> <td>Size</td> <td>0</td> </tr>
+			<tr> <td>aTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>cTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>mTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>Type</td> <td>0</td> </tr>
+			<tr> <td>Perm</td> <td>777</td> </tr>
+			<tr> <td>B1</td> <td PORT = "f0">15</td> </tr>
+			<tr> <td>B2</td> <td PORT = "f1">-1</td> </tr>
+			<tr> <td>B3</td> <td PORT = "f2">-1</td> </tr>
+			<tr> <td>B4</td> <td PORT = "f3">-1</td> </tr>
+			<tr> <td>B5</td> <td PORT = "f4">-1</td> </tr>
+			<tr> <td>B6</td> <td PORT = "f5">-1</td> </tr>
+			<tr> <td>B7</td> <td PORT = "f6">-1</td> </tr>
+			<tr> <td>B8</td> <td PORT = "f7">-1</td> </tr>
+			<tr> <td>B9</td> <td PORT = "f8">-1</td> </tr>
+			<tr> <td>B10</td> <td PORT = "f9">-1</td> </tr>
+			<tr> <td>B11</td> <td PORT = "f10">-1</td> </tr>
+			<tr> <td>B12</td> <td PORT = "f11">-1</td> </tr>
+			<tr> <td>B13</td> <td PORT = "f12">-1</td> </tr>
+			<tr> <td>B14</td> <td PORT = "f13">-1</td> </tr>
+			<tr> <td>B15</td> <td PORT = "f14">-1</td> </tr>
+	</table> >];
+
+	bl15 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="sandybrown">
+			<tr> <td colspan = "2" PORT="p">Block 15</td> </tr>
+			<tr> <td>.</td> <td PORT = "f0">7</td> </tr>
+			<tr> <td>..</td> <td PORT = "f1">2</td> </tr>
+			<tr> <td>texto.txt</td> <td PORT = "f2">8</td> </tr>
+			<tr> <td></td> <td PORT = "f3">-1</td> </tr>
+	</table> >];
+
+	in8 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="greenyellow">
+			<tr> <td colspan = "2" PORT="p">Inode 8</td> </tr>
+			<tr> <td>UID</td> <td>0</td> </tr>
+			<tr> <td>GID</td> <td>0</td> </tr>
+			<tr> <td>Size</td> <td>241</td> </tr>
+			<tr> <td>aTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>cTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>mTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>Type</td> <td>1</td> </tr>
+			<tr> <td>Perm</td> <td>777</td> </tr>
+			<tr> <td>B1</td> <td PORT = "f0">16</td> </tr>
+			<tr> <td>B2</td> <td PORT = "f1">17</td> </tr>
+			<tr> <td>B3</td> <td PORT = "f2">18</td> </tr>
+			<tr> <td>B4</td> <td PORT = "f3">19</td> </tr>
+			<tr> <td>B5</td> <td PORT = "f4">-1</td> </tr>
+			<tr> <td>B6</td> <td PORT = "f5">-1</td> </tr>
+			<tr> <td>B7</td> <td PORT = "f6">-1</td> </tr>
+			<tr> <td>B8</td> <td PORT = "f7">-1</td> </tr>
+			<tr> <td>B9</td> <td PORT = "f8">-1</td> </tr>
+			<tr> <td>B10</td> <td PORT = "f9">-1</td> </tr>
+			<tr> <td>B11</td> <td PORT = "f10">-1</td> </tr>
+			<tr> <td>B12</td> <td PORT = "f11">-1</td> </tr>
+			<tr> <td>B13</td> <td PORT = "f12">-1</td> </tr>
+			<tr> <td>B14</td> <td PORT = "f13">-1</td> </tr>
+			<tr> <td>B15</td> <td PORT = "f14">-1</td> </tr>
+	</table> >];
+
+	bl16 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
+			<tr> <td colspan = "2" PORT="p">Block 16</td> </tr>
+			<tr> <td colspan = "2"> Hola me llamo sebastian y dark souls es el mejor videojuego de l </td> </tr>
+	</table> >];
+
+	in8:f0 -> bl16:p;
+	bl17 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
+			<tr> <td colspan = "2" PORT="p">Block 17</td> </tr>
+			<tr> <td colspan = "2"> a historia.
+Hidetaka Miyazaki realizo
+esta obra maestra en 2011  </td> </tr>
+	</table> >];
+
+	in8:f1 -> bl17:p;
+	bl18 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
+			<tr> <td colspan = "2" PORT="p">Block 18</td> </tr>
+			<tr> <td colspan = "2"> y desde entonces creo 
+un videojuego que ha influido a miles de  </td> </tr>
+	</table> >];
+
+	in8:f2 -> bl18:p;
+	bl19 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
+			<tr> <td colspan = "2" PORT="p">Block 19</td> </tr>
+			<tr> <td colspan = "2"> creadores independientes y no tan independientes. </td> </tr>
+	</table> >];
+
+	in8:f3 -> bl19:p;
+	bl15:f2 -> in8:p;
+	in7:f0 -> bl15:p;
+	bl2:f3 -> in7:p;
 	in2:f0 -> bl2:p;
 	bl0:f3 -> in2:p;
 	in0:f0 -> bl0:p;
 	bl3 [shape=none, margin=0, label =<
 		<table border="0" cellborder="1" cellspacing="0" bgcolor="sandybrown">
 			<tr> <td colspan = "2" PORT="p">Block 3</td> </tr>
-			<tr> <td>bin</td> <td PORT = "f0">3</td> </tr>
-			<tr> <td></td> <td PORT = "f1">-1</td> </tr>
+			<tr> <td>dev</td> <td PORT = "f0">3</td> </tr>
+			<tr> <td>bin</td> <td PORT = "f1">4</td> </tr>
 			<tr> <td></td> <td PORT = "f2">-1</td> </tr>
 			<tr> <td></td> <td PORT = "f3">-1</td> </tr>
 	</table> >];
@@ -357,9 +382,9 @@ un videojuego que ha influido a miles de  </td> </tr>
 			<tr> <td>UID</td> <td>0</td> </tr>
 			<tr> <td>GID</td> <td>0</td> </tr>
 			<tr> <td>Size</td> <td>0</td> </tr>
-			<tr> <td>aTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>cTime</td> <td>20/03/19 20:25</td> </tr>
-			<tr> <td>mTime</td> <td>20/03/19 20:25</td> </tr>
+			<tr> <td>aTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>cTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>mTime</td> <td>21/03/19 23:41</td> </tr>
 			<tr> <td>Type</td> <td>0</td> </tr>
 			<tr> <td>Perm</td> <td>664</td> </tr>
 			<tr> <td>B1</td> <td PORT = "f0">4</td> </tr>
@@ -390,5 +415,44 @@ un videojuego que ha influido a miles de  </td> </tr>
 
 	in3:f0 -> bl4:p;
 	bl3:f0 -> in3:p;
+	in4 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="goldenrod1">
+			<tr> <td colspan = "2" PORT="p">Inode 4</td> </tr>
+			<tr> <td>UID</td> <td>0</td> </tr>
+			<tr> <td>GID</td> <td>0</td> </tr>
+			<tr> <td>Size</td> <td>0</td> </tr>
+			<tr> <td>aTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>cTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>mTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>Type</td> <td>0</td> </tr>
+			<tr> <td>Perm</td> <td>664</td> </tr>
+			<tr> <td>B1</td> <td PORT = "f0">5</td> </tr>
+			<tr> <td>B2</td> <td PORT = "f1">-1</td> </tr>
+			<tr> <td>B3</td> <td PORT = "f2">-1</td> </tr>
+			<tr> <td>B4</td> <td PORT = "f3">-1</td> </tr>
+			<tr> <td>B5</td> <td PORT = "f4">-1</td> </tr>
+			<tr> <td>B6</td> <td PORT = "f5">-1</td> </tr>
+			<tr> <td>B7</td> <td PORT = "f6">-1</td> </tr>
+			<tr> <td>B8</td> <td PORT = "f7">-1</td> </tr>
+			<tr> <td>B9</td> <td PORT = "f8">-1</td> </tr>
+			<tr> <td>B10</td> <td PORT = "f9">-1</td> </tr>
+			<tr> <td>B11</td> <td PORT = "f10">-1</td> </tr>
+			<tr> <td>B12</td> <td PORT = "f11">-1</td> </tr>
+			<tr> <td>B13</td> <td PORT = "f12">-1</td> </tr>
+			<tr> <td>B14</td> <td PORT = "f13">-1</td> </tr>
+			<tr> <td>B15</td> <td PORT = "f14">-1</td> </tr>
+	</table> >];
+
+	bl5 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0" bgcolor="sandybrown">
+			<tr> <td colspan = "2" PORT="p">Block 5</td> </tr>
+			<tr> <td>.</td> <td PORT = "f0">4</td> </tr>
+			<tr> <td>..</td> <td PORT = "f1">0</td> </tr>
+			<tr> <td></td> <td PORT = "f2">-1</td> </tr>
+			<tr> <td></td> <td PORT = "f3">-1</td> </tr>
+	</table> >];
+
+	in4:f0 -> bl5:p;
+	bl3:f1 -> in4:p;
 	in0:f1 -> bl3:p;
 }

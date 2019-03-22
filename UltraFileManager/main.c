@@ -9,6 +9,8 @@ int main()
     printf("Ultra File Manager - Sebastian Sanchez - 201603014\n");
     //int exit = 1;
     //char val[512] = {0};
+    currentUser.nullUser = 1;
+    currentUser.pNode = NULL;
     char val[512] = "exec -path~:~ /home/sebastian/Documentos/Cal.sh";
     analyseString(val);
     /*while (exit)

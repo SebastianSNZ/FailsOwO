@@ -1102,10 +1102,21 @@ void reportMbr(char filePath[], char destiny[])
 /*
  *
  * INICIO DE LA SEGUNDA FASE
-*/
+ *
+ */
 
 
 
+struct USER
+{
+    int nullUser;
+    int rootUser;
+    int gid;
+    int uid;
+    PartitionNode *pNode;
+};
+
+typedef struct USER User;
 
 struct SUPER_BLOCK
 {
@@ -1245,9 +1256,18 @@ void listInodeReport(PartitionNode *node);
 void listBlockReport(PartitionNode *node);
 void superBlockReport(PartitionNode *node);
 void fileReport(PartitionNode *partNode, char systemPath[], char destinyPath[]);
-
+char *getUserValue(SuperBlock *sb, FILE *disk, int offset, int *size);
+void makeGroup(char name[], PartitionNode *node);
+void makeUser(char group[], char name[], char pass[], PartitionNode *node);
+void writeUserFile(SuperBlock *sb, FILE *disk, char *cont, int size);
+void deleteGroup();
 Inode newInode();
 FolderBlock newFolderBlock();
+void loginUser(char name[], char grp[], char pass[], char id[]);
+int getUserInfo(char *text, char name[], char grp[], char pass[], int *uid, int *gid);
+void logout();
+User currentUser;
+
 
 void makeFileSystem(char id[], char type[], char fs[])
 {
@@ -1300,6 +1320,7 @@ void makeExt2(PartitionNode *node, char path[], int n)
     fwrite(&sb, sizeof(SuperBlock), 1, disk);
     createFirstFolder(sb, disk);
     fclose(disk);
+    makeNewFile("/users.txt", "start.txt", 0, 1, 000, node);
 }
 
 void prueba(char path[], PartitionNode *node)
@@ -1318,7 +1339,12 @@ void prueba(char path[], PartitionNode *node)
     makeNewDirectory("/home/", 1, 664, node);
     makeNewFile("/home/ayuda/texto.txt", "", 512, 1, 664, node);
     makeNewFile("/home/coso/texto.txt", "/home/sebastian/Documentos/Hola.txt", 0, 1, 777, node);
-    treeReport(node);
+    makeGroup("hola", node);
+    makeUser("hola", "sebas", "nacho", node);
+    makeUser("hola", "sanchez", "nacho", node);
+    makeUser("hola", "tuchez", "nacho", node);
+    makeGroup("familia", node);
+    loginUser("tuchez", "hola", "nacho", "vda1");
     bitmapInodeReport(node, "/home/sebastian/Documentos/bmInode.txt");
     bitmapBlockReport(node, "/home/sebastian/Documentos/bmBlock.txt");
     listInodeReport(node);
@@ -1326,6 +1352,305 @@ void prueba(char path[], PartitionNode *node)
     superBlockReport(node);
     fileReport(node, "/home/ayuda/texto.txt", "/home/sebastian/Documentos/archivinho.txt");
     fileReport(node, "/home/coso/texto.txt", "/home/sebastian/Documentos/archivinho2.txt");
+    treeReport(node);
+    fileReport(node, "/users.txt", "/home/sebastian/Documentos/archivinho3.txt");
+}
+
+
+void loginUser(char name[], char grp[], char pass[], char id[])
+{
+    User u = currentUser;
+    if (!currentUser.nullUser)
+    {
+        printf("Error, usuario con sesion iniciado.\n");
+    }
+    PartitionNode *node = getPartitionNode(partList, id);
+    if (node == NULL)
+    {
+        printf("Error, la particion %s no se encuentra montada.\n", id);
+        return;
+    }
+    SuperBlock sb;
+    FILE *disk = fopen(node->filePtr->path, "rb+");
+    if (!disk) return;
+    fseek(disk, node->start, SEEK_SET);
+    fread(&sb, sizeof(SuperBlock), 1, disk);
+    int size = 0;
+    int uid = 0;
+    int gid = 0;
+    char *content = getUserValue(&sb, disk, 0, &size);
+    if (!getUserInfo(content, name, grp, pass, &uid, &gid))
+    {
+        free(content);
+        fclose(disk);
+        printf("Error, usuario no encontrado.\n");
+        return;
+    }
+    currentUser.nullUser = 0;
+    currentUser.pNode = node;
+    currentUser.gid = gid;
+    currentUser.uid = uid;
+    currentUser.rootUser = strcasecmp(name, "root") ? 0 : 1;
+    u = currentUser;
+    free(content);
+    fclose(disk);
+}
+
+
+
+int getUserInfo(char *text, char name[], char grp[], char pass[], int *uid, int *gid)
+{
+    char newGroup[11] = {0};
+    strcpy(newGroup, grp);
+    for (int k = 0; k < 10; k++)
+        if (newGroup[k] == 0) newGroup[k] = ' ';
+    char newName[11] = {0};
+    strcpy(newName, name);
+    for (int k = 0; k < 10; k++)
+        if (newName[k] == 0) newName[k] = ' ';
+    char newPass[11] = {0};
+    strcpy(newPass, pass);
+    for (int k = 0; k < 10; k++)
+        if (newPass[k] == 0) newPass[k] = ' ';
+    char *lineToken = strtok(text, "\n");
+    int gNumber = -1;
+    int uNumber = -1;
+    for(;lineToken != NULL; lineToken = strtok(NULL, "\n"))
+    {
+        int number = lineToken[0] - '0';
+        if (number == 0) continue;
+        char type = lineToken[2];
+        if (type == 'G')
+        {
+            char nameValue[11] = {0};
+            strncpy(nameValue, lineToken + 4, 10);
+            if (!strcasecmp(nameValue, newGroup))
+            {
+                gNumber = number;
+            }
+            continue;
+        }
+        char groupValue[11] = {0};
+        strncpy(groupValue, lineToken + 4, 10);
+        char nameValue[11] = {0};
+        strncpy(nameValue, lineToken + 15, 10);
+        char passValue[11] = {0};
+        strncpy(passValue, lineToken + 26, 10);
+        if(!strcasecmp(groupValue, newGroup) && !strcasecmp(nameValue, newName) && !strcasecmp(passValue, newPass))
+        {
+            uNumber = number;
+            break;
+        }
+    }
+    if (gNumber < 0 || uNumber < 0)
+    {
+        return 0;
+    }
+    *gid = gNumber;
+    *uid = uNumber;
+    return 1;
+}
+
+void logout()
+{
+    if (currentUser.nullUser)
+    {
+        printf("Error, no hay ninguna sesion iniciada.\n");
+        return;
+    }
+    currentUser.nullUser = 1;
+}
+
+
+char *getUserValue(SuperBlock *sb, FILE *disk, int offset, int *size)
+{
+    Inode inode;
+    fseek(disk, getInodeAddressByIndex(sb, 1), SEEK_SET);
+    fread(&inode, sizeof(Inode), 1, disk);
+    char *cont = (char *) malloc(sizeof(char) * (inode.size + offset));
+    int it = 0;
+    for (int i = 0; i < 12; i++)
+    {
+        if (inode.block[i] == -1) continue;
+        FileBlock fb;
+        fseek(disk, getBlockAddressByIndex(sb, inode.block[i]), SEEK_SET);
+        fread(&fb, sizeof(FileBlock), 1, disk);
+        for(int j = 0; j < 64 && fb.content[j] != 0; j++)
+        {
+            cont[it] = fb.content[j];
+            it++;
+        }
+    }
+    cont[inode.size] = 0;
+    *size = inode.size;
+    return cont;
+}
+
+void makeGroup(char name[], PartitionNode *node)
+{
+    char newGroup[11] = {0};
+    strcpy(newGroup, name);
+    for (int k = 0; k < 10; k++)
+    {
+        if (newGroup[k] == 0) newGroup[k] = ' ';
+    }
+    int size = 0;
+    SuperBlock sb;
+    FILE *disk = fopen(node->filePtr->path, "rb+");
+    fseek(disk, node->start, SEEK_SET);
+    fread(&sb, sizeof(SuperBlock), 1, disk);
+    char *content = getUserValue(&sb, disk, 16, &size);
+    char *aux = (char *) malloc(sizeof(char) * (size + 16));
+    strcpy(aux, content);
+    int next = 1;
+    int doit = 1;
+    char *lineToken = strtok(aux, "\n");
+    for(;lineToken != NULL; lineToken = strtok(NULL, "\n"))
+    {
+        int number = lineToken[0] - '0';
+        if (number == 0) continue;
+        char type = lineToken[2];
+        char nameValue[11] = {0};
+        strncpy(nameValue, lineToken + 4, 10);
+        if (type == 'U') continue;
+        if (!strcasecmp(newGroup, nameValue))
+        {
+            doit = 0;
+            break;
+        }
+        if (number >= next) next = number + 1;
+    }
+    if (!doit)
+    {
+        //ERROR
+        return;
+    }
+    char new[16] ={0};
+    new[0] = next + '0';
+    new[1] = ',';
+    new[2] = 'G';
+    new[3] = ',';
+    strcat(new, newGroup);
+    strcat(new, "\n");
+    strcat(content, new);
+    writeUserFile(&sb, disk, content, size + 16);
+    free(content);
+    free(aux);
+    fclose(disk);
+}
+
+void makeUser(char group[], char name[], char pass[], PartitionNode *node)
+{
+    char newGroup[11] = {0};
+    strcpy(newGroup, group);
+    for (int k = 0; k < 10; k++)
+        if (newGroup[k] == 0) newGroup[k] = ' ';
+    char newName[11] = {0};
+    strcpy(newName, name);
+    for (int k = 0; k < 10; k++)
+        if (newName[k] == 0) newName[k] = ' ';
+    char newPass[11] = {0};
+    strcpy(newPass, pass);
+    for (int k = 0; k < 10; k++)
+        if (newPass[k] == 0) newPass[k] = ' ';
+    int size = 0;
+    SuperBlock sb;
+    FILE *disk = fopen(node->filePtr->path, "rb+");
+    fseek(disk, node->start, SEEK_SET);
+    fread(&sb, sizeof(SuperBlock), 1, disk);
+    char *content = getUserValue(&sb, disk, 38, &size);
+    char *aux = (char *) malloc(sizeof(char) * (size + 38));
+    strcpy(aux, content);
+    int next = 1;
+    int doit = 1;
+    int grp = 0;
+    char *lineToken = strtok(aux, "\n");
+    for(;lineToken != NULL; lineToken = strtok(NULL, "\n"))
+    {
+        int number = lineToken[0] - '0';
+        if (number == 0) continue;
+        char type = lineToken[2];
+        if (type == 'G')
+        {
+            char nameValue[11] = {0};
+            strncpy(nameValue, lineToken + 4, 10);
+            if (!strcasecmp(nameValue, newGroup))
+            {
+                grp = 1;
+            }
+            continue;
+        }
+        char groupValue[11] = {0};
+        strncpy(groupValue, lineToken + 4, 10);
+        char nameValue[11] = {0};
+        strncpy(nameValue, lineToken + 15, 10);
+        if(!strcasecmp(groupValue, newGroup) && !strcasecmp(nameValue, newName))
+        {
+            doit = 0;
+            break;
+        }
+        if (number >= next) next = number + 1;
+
+    }
+    if (!doit)
+    {
+        //ERROR usuario ya existe
+        return;
+    }
+    if (!grp)
+    {
+        //ERROR grupo no existe
+        return;
+    }
+    char new[38] ={0};
+    new[0] = next + '0';
+    new[1] = ',';
+    new[2] = 'U';
+    new[3] = ',';
+    strcat(new, newGroup);
+    strcat(new, ",");
+    strcat(new, newName);
+    strcat(new, ",");
+    strcat(new, newPass);
+    strcat(new, "\n");
+    strcat(content, new);
+    writeUserFile(&sb, disk, content, size + 38);
+    free(content);
+    free(aux);
+    fclose(disk);
+}
+
+void writeUserFile(SuperBlock *sb, FILE *disk, char *cont, int size)
+{
+    Inode inode;
+    fseek(disk, getInodeAddressByIndex(sb, 1), SEEK_SET);
+    fread(&inode, sizeof(inode), 1, disk);
+    for(int i = 0; i < 12; i++)
+        if (inode.block[i] != -1)
+        {
+            writeInBlockBitmap(sb, disk, 0, inode.block[i]);
+            inode.block[i] = -1;
+        }
+    int a = 0;
+    int k = 0;
+    FileBlock fb;
+    for (; k < size; k++, a++)
+    {
+        if (a == 64)
+        {
+            addFileBlock(sb, disk, &fb, &inode);
+            a = 0;
+        }
+        fb.content[a] = cont[k];
+    }
+    int b = a != 0;
+    for (; a < 64 && b; a++)
+    {
+        fb.content[a] = 0;
+    }
+    if (b) addFileBlock(sb, disk, &fb, &inode);
+    inode.size = size - 1;
+    writeInode(sb, disk, &inode, 1);
 }
 
 void makeExt3(PartitionNode *node, char path[], int n)
@@ -1356,6 +1681,7 @@ void makeExt3(PartitionNode *node, char path[], int n)
     fwrite(&sb, sizeof(SuperBlock), 1, disk);
     createFirstFolder(sb, disk);
     fclose(disk);
+    makeNewFile("/users.txt", "start.txt", 0, 1, 000, node);
     prueba(path, node);
 }
 
@@ -1803,6 +2129,7 @@ void addFileBlockFromFile(SuperBlock *sb, FILE *disk, char path[], Inode *inode)
     }
     if (b) addFileBlock(sb, disk, &fb, inode);
     fclose(cont);
+    inode->size = size;
 }
 
 
