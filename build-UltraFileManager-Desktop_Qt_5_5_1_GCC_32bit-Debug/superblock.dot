@@ -1,0 +1,27 @@
+digraph g {
+rankdir = LR;
+graph [fontname = "arial"];
+node [fontname = "arial"];
+edge [fontname = "arial"];
+	blsupinterb [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2">SuperBloque</td> </tr>
+			<tr> <td>Inodes Count</td> <td>4194</td> </tr>
+			<tr> <td>Blocks Count</td> <td>12582</td> </tr>
+			<tr> <td>Free Blocks</td> <td>12564</td> </tr>
+			<tr> <td>Free Inodes</td> <td>4185</td> </tr>
+			<tr> <td>Mount Time</td> <td>25/03/19 01:46</td> </tr>
+			<tr> <td>Unmount Time</td> <td>25/03/19 01:46</td> </tr>
+			<tr> <td>Mount Count</td> <td>1</td> </tr>
+			<tr> <td>Magic</td> <td>EF53</td> </tr>
+			<tr> <td>Inode Size</td> <td>128</td> </tr>
+			<tr> <td>Block Size</td> <td>64</td> </tr>
+			<tr> <td>First Inode</td> <td>9</td> </tr>
+			<tr> <td>First Block</td> <td>18</td> </tr>
+			<tr> <td>Inode BM Start</td> <td>1786968</td> </tr>
+			<tr> <td>Block BM Start</td> <td>1791162</td> </tr>
+			<tr> <td>Inode Start</td> <td>1803744</td> </tr>
+			<tr> <td>Block Start</td> <td>2340576</td> </tr>
+	</table> >];
+
+}

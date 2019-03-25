@@ -1190,10 +1190,12 @@ struct JOURNALING
     char operation;
     char type;
     char name[12];
-    char content[200];
+    char content[128];
     char date[16];
     int owner;
     int perm;
+    int next;
+    int father;
 };
 
 typedef struct JOURNALING Journal;
@@ -1264,9 +1266,12 @@ void deleteGroup();
 Inode newInode();
 FolderBlock newFolderBlock();
 void loginUser(char name[], char grp[], char pass[], char id[]);
-int getUserInfo(char *text, char name[], char grp[], char pass[], int *uid, int *gid);
+int getUserInfo(char *cont, char name[], char grp[], char pass[], int *uid, int *gid);
 void logout();
 User currentUser;
+void pauseThread();
+Journal getNewJournal(char content[], char type, char name[], char operation, int owner, int perm, int father);
+void writeInJournal(SuperBlock *sb, FILE *disk, char content[], int size, char type, char name[], char operation, int owner, int perm, int father);
 
 
 void makeFileSystem(char id[], char type[], char fs[])
@@ -1289,6 +1294,11 @@ void makeFileSystem(char id[], char type[], char fs[])
         return;
     }
     makeExt2(part, path, getInode2Number(part->size));
+}
+
+void pauseThread() {
+    printf("Presione cualquier tecla para continuar.\n");
+    getchar();
 }
 
 
@@ -1333,6 +1343,7 @@ void prueba(char path[], PartitionNode *node)
     fseek(disk, node->start, SEEK_SET);
     fwrite(&sb, sizeof(SuperBlock), 1, disk);
     fclose(disk);*/
+    loginUser("root", "root", "123", "vda1");
     makeNewDirectory("/home/", 1, 664, node);
     makeNewDirectory("/dev/", 1, 664, node);
     makeNewDirectory("/bin/", 1, 664, node);
@@ -1344,12 +1355,14 @@ void prueba(char path[], PartitionNode *node)
     makeUser("hola", "sanchez", "nacho", node);
     makeUser("hola", "tuchez", "nacho", node);
     makeGroup("familia", node);
-    loginUser("tuchez", "hola", "nacho", "vda1");
+    logout();
+    loginUser("sebas", "hola", "nacho", "vda1");
     bitmapInodeReport(node, "/home/sebastian/Documentos/bmInode.txt");
     bitmapBlockReport(node, "/home/sebastian/Documentos/bmBlock.txt");
     listInodeReport(node);
     listBlockReport(node);
     superBlockReport(node);
+    pauseThread();
     fileReport(node, "/home/ayuda/texto.txt", "/home/sebastian/Documentos/archivinho.txt");
     fileReport(node, "/home/coso/texto.txt", "/home/sebastian/Documentos/archivinho2.txt");
     treeReport(node);
@@ -1359,7 +1372,6 @@ void prueba(char path[], PartitionNode *node)
 
 void loginUser(char name[], char grp[], char pass[], char id[])
 {
-    User u = currentUser;
     if (!currentUser.nullUser)
     {
         printf("Error, usuario con sesion iniciado.\n");
@@ -1378,7 +1390,7 @@ void loginUser(char name[], char grp[], char pass[], char id[])
     int size = 0;
     int uid = 0;
     int gid = 0;
-    char *content = getUserValue(&sb, disk, 0, &size);
+    char *content = getUserValue(&sb, disk, 1, &size);
     if (!getUserInfo(content, name, grp, pass, &uid, &gid))
     {
         free(content);
@@ -1390,16 +1402,17 @@ void loginUser(char name[], char grp[], char pass[], char id[])
     currentUser.pNode = node;
     currentUser.gid = gid;
     currentUser.uid = uid;
-    currentUser.rootUser = strcasecmp(name, "root") ? 0 : 1;
-    u = currentUser;
+    currentUser.rootUser = !strcasecmp(name, "root") && !strcasecmp(grp, "root") ? 1 : 0;
     free(content);
     fclose(disk);
 }
 
 
 
-int getUserInfo(char *text, char name[], char grp[], char pass[], int *uid, int *gid)
+int getUserInfo(char *cont, char name[], char grp[], char pass[], int *uid, int *gid)
 {
+    char text[1024] = {0};
+    strcpy(text, cont);
     char newGroup[11] = {0};
     strcpy(newGroup, grp);
     for (int k = 0; k < 10; k++)
@@ -1522,17 +1535,20 @@ void makeGroup(char name[], PartitionNode *node)
     }
     if (!doit)
     {
-        //ERROR
+        printf("Erorr, el grupo ya existe.\n");
+        free(content);
+        free(aux);
+        fclose(disk);
         return;
     }
-    char new[16] ={0};
-    new[0] = next + '0';
-    new[1] = ',';
-    new[2] = 'G';
-    new[3] = ',';
-    strcat(new, newGroup);
-    strcat(new, "\n");
-    strcat(content, new);
+    char newV[16] ={0};
+    newV[0] = next + '0';
+    newV[1] = ',';
+    newV[2] = 'G';
+    newV[3] = ',';
+    strcat(newV, newGroup);
+    strcat(newV, "\n");
+    strcat(content, newV);
     writeUserFile(&sb, disk, content, size + 16);
     free(content);
     free(aux);
@@ -1594,26 +1610,32 @@ void makeUser(char group[], char name[], char pass[], PartitionNode *node)
     }
     if (!doit)
     {
-        //ERROR usuario ya existe
+        printf("Error, el usuario no existe.\n");
+        free(content);
+        free(aux);
+        fclose(disk);
         return;
     }
     if (!grp)
     {
-        //ERROR grupo no existe
+        printf("Error, el grupo no existe.\n");
+        free(content);
+        free(aux);
+        fclose(disk);
         return;
     }
-    char new[38] ={0};
-    new[0] = next + '0';
-    new[1] = ',';
-    new[2] = 'U';
-    new[3] = ',';
-    strcat(new, newGroup);
-    strcat(new, ",");
-    strcat(new, newName);
-    strcat(new, ",");
-    strcat(new, newPass);
-    strcat(new, "\n");
-    strcat(content, new);
+    char newV[38] ={0};
+    newV[0] = next + '0';
+    newV[1] = ',';
+    newV[2] = 'U';
+    newV[3] = ',';
+    strcat(newV, newGroup);
+    strcat(newV, ",");
+    strcat(newV, newName);
+    strcat(newV, ",");
+    strcat(newV, newPass);
+    strcat(newV, "\n");
+    strcat(content, newV);
     writeUserFile(&sb, disk, content, size + 38);
     free(content);
     free(aux);
@@ -1680,6 +1702,9 @@ void makeExt3(PartitionNode *node, char path[], int n)
     fseek(disk, node->start, SEEK_SET);
     fwrite(&sb, sizeof(SuperBlock), 1, disk);
     createFirstFolder(sb, disk);
+    Journal j = getNewJournal("0", 0, "#START", 0, 0, 0, 0);
+    fseek(disk, node->start + sizeof(SuperBlock), SEEK_SET);
+    fwrite(&j, sizeof(Journal), 1, disk);
     fclose(disk);
     makeNewFile("/users.txt", "start.txt", 0, 1, 000, node);
     prueba(path, node);
@@ -1736,6 +1761,23 @@ Inode newInode()
         node.block[i] = -1;
     }
     return node;
+}
+
+
+Journal getNewJournal(char content[], char type, char name[], char operation, int owner, int perm, int father) {
+    Journal j;
+    strcpy(j.content, content);
+    char date[16] = {0};
+    getDate(date);
+    strcpy(j.date, date);
+    strcpy(j.name, name);
+    j.type = type;
+    j.next = -1;
+    j.operation = operation;
+    j.owner = owner;
+    j.perm = perm;
+    j.father = father;
+    return j;
 }
 
 void getDate(char cad[])
@@ -1887,6 +1929,31 @@ void writeInInodeBitmap(SuperBlock *sb, FILE *disk, char value, int index)
     else sb->freeInodesCount = sb->freeInodesCount + 1;
 }
 
+void writeInJournal(SuperBlock *sb, FILE *disk, char content[], int size, char type, char name[], char operation, int owner, int perm, int father)
+{
+    if (sb->type != 3) return;
+    if (currentUser.nullUser) return;
+    char newContent[128] = {0};
+    if (content[0] == 0) sprintf(newContent, "%i", size);
+    else strcpy(newContent, content);
+    int start = currentUser.pNode->start + sizeof(SuperBlock);
+    Journal journal;
+    Journal newJournal = getNewJournal(newContent, type, name, operation, owner, perm, father);
+    fseek(disk, start, SEEK_SET);
+    fread(&journal, sizeof(Journal), 1, disk);
+    while (journal.next != -1)
+    {
+        start += sizeof(Journal);
+        fseek(disk, start, SEEK_SET);
+        fread(&journal, sizeof(Journal), 1, disk);
+    }
+    journal.next = start + sizeof(Journal);
+    fseek(disk, start, SEEK_SET);
+    fwrite(&journal, sizeof(Journal), 1, disk);
+    fseek(disk, start + sizeof(Journal), SEEK_SET);
+    fwrite(&newJournal, sizeof(Journal), 1, disk);
+}
+
 int addNewItem(SuperBlock *sb, FILE *disk, int father, char name[], int perm, char content[], int size, int type)
 {
     int adrs = getInodeAddressByIndex(sb, father);
@@ -1894,6 +1961,8 @@ int addNewItem(SuperBlock *sb, FILE *disk, int father, char name[], int perm, ch
     fseek(disk, adrs, SEEK_SET);
     fread(&in, sizeof(Inode), 1, disk);
     if (in.type != 0) return -1;
+    //VERIFICAR PERMISOS
+    writeInJournal(sb, disk, content, size, type, name, 0, currentUser.uid, perm, father);
     for (int i = 0; i < 15; i++)
     {
         int level = 0;
@@ -1954,7 +2023,8 @@ void createFolder(SuperBlock *sb, FILE *disk, int index, int father, int perm)
 {
     Inode node = newInode();
     node.perm = perm;
-    //AGREGAR GID Y UID
+    node.gid = currentUser.gid;
+    node.uid = currentUser.gid;
     FolderBlock fb = newFolderBlock();
     strcpy(fb.content[0].name, ".");
     strcpy(fb.content[1].name, "..");
@@ -2095,7 +2165,8 @@ int createFile(SuperBlock *sb, FILE *disk, int index, int perm, int size, char p
     node.perm = perm;
     node.type = 1;
     node.size = size;
-    //AGREGAR UID Y GID
+    node.uid = currentUser.uid;
+    node.gid = currentUser.gid;
     if (path[0] != 0) addFileBlockFromFile(sb, disk, path, &node);
     else addFileBlockFromSize(sb, disk, size, &node);
     writeInInodeBitmap(sb, disk, 1, index);

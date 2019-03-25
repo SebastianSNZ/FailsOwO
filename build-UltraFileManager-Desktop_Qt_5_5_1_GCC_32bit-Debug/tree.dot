@@ -9,9 +9,9 @@ edge [fontname = "arial"];
 			<tr> <td>UID</td> <td>1</td> </tr>
 			<tr> <td>GID</td> <td>1</td> </tr>
 			<tr> <td>Size</td> <td>0</td> </tr>
-			<tr> <td>aTime</td> <td>21/03/19 23:41</td> </tr>
-			<tr> <td>cTime</td> <td>21/03/19 23:41</td> </tr>
-			<tr> <td>mTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>aTime</td> <td>25/03/19 01:38</td> </tr>
+			<tr> <td>cTime</td> <td>25/03/19 01:38</td> </tr>
+			<tr> <td>mTime</td> <td>25/03/19 01:38</td> </tr>
 			<tr> <td>Type</td> <td>0</td> </tr>
 			<tr> <td>Perm</td> <td>0</td> </tr>
 			<tr> <td>B1</td> <td PORT = "f0">0</td> </tr>
@@ -46,15 +46,15 @@ edge [fontname = "arial"];
 			<tr> <td>UID</td> <td>0</td> </tr>
 			<tr> <td>GID</td> <td>0</td> </tr>
 			<tr> <td>Size</td> <td>193</td> </tr>
-			<tr> <td>aTime</td> <td>21/03/19 23:41</td> </tr>
-			<tr> <td>cTime</td> <td>21/03/19 23:41</td> </tr>
-			<tr> <td>mTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>aTime</td> <td>25/03/19 01:38</td> </tr>
+			<tr> <td>cTime</td> <td>25/03/19 01:38</td> </tr>
+			<tr> <td>mTime</td> <td>25/03/19 01:38</td> </tr>
 			<tr> <td>Type</td> <td>1</td> </tr>
 			<tr> <td>Perm</td> <td>0</td> </tr>
 			<tr> <td>B1</td> <td PORT = "f0">1</td> </tr>
-			<tr> <td>B2</td> <td PORT = "f1">20</td> </tr>
-			<tr> <td>B3</td> <td PORT = "f2">21</td> </tr>
-			<tr> <td>B4</td> <td PORT = "f3">22</td> </tr>
+			<tr> <td>B2</td> <td PORT = "f1">18</td> </tr>
+			<tr> <td>B3</td> <td PORT = "f2">19</td> </tr>
+			<tr> <td>B4</td> <td PORT = "f3">20</td> </tr>
 			<tr> <td>B5</td> <td PORT = "f4">-1</td> </tr>
 			<tr> <td>B6</td> <td PORT = "f5">-1</td> </tr>
 			<tr> <td>B7</td> <td PORT = "f6">-1</td> </tr>
@@ -77,42 +77,42 @@ edge [fontname = "arial"];
 	</table> >];
 
 	in1:f0 -> bl1:p;
-	bl20 [shape=none, margin=0, label =<
+	bl18 [shape=none, margin=0, label =<
 		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
-			<tr> <td colspan = "2" PORT="p">Block 20</td> </tr>
+			<tr> <td colspan = "2" PORT="p">Block 18</td> </tr>
 			<tr> <td colspan = "2">   
 2,U,hola      ,sebas     ,nacho     
 3,U,hola      ,sanchez   </td> </tr>
 	</table> >];
 
-	in1:f1 -> bl20:p;
-	bl21 [shape=none, margin=0, label =<
+	in1:f1 -> bl18:p;
+	bl19 [shape=none, margin=0, label =<
 		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
-			<tr> <td colspan = "2" PORT="p">Block 21</td> </tr>
+			<tr> <td colspan = "2" PORT="p">Block 19</td> </tr>
 			<tr> <td colspan = "2">  ,nacho     
 4,U,hola      ,tuchez    ,nacho     
 3,G,familia    </td> </tr>
 	</table> >];
 
-	in1:f2 -> bl21:p;
-	bl22 [shape=none, margin=0, label =<
+	in1:f2 -> bl19:p;
+	bl20 [shape=none, margin=0, label =<
 		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
-			<tr> <td colspan = "2" PORT="p">Block 22</td> </tr>
+			<tr> <td colspan = "2" PORT="p">Block 20</td> </tr>
 			<tr> <td colspan = "2"> 
  </td> </tr>
 	</table> >];
 
-	in1:f3 -> bl22:p;
+	in1:f3 -> bl20:p;
 	bl0:f2 -> in1:p;
 	in2 [shape=none, margin=0, label =<
 		<table border="0" cellborder="1" cellspacing="0" bgcolor="goldenrod1">
 			<tr> <td colspan = "2" PORT="p">Inode 2</td> </tr>
-			<tr> <td>UID</td> <td>0</td> </tr>
-			<tr> <td>GID</td> <td>0</td> </tr>
+			<tr> <td>UID</td> <td>1</td> </tr>
+			<tr> <td>GID</td> <td>1</td> </tr>
 			<tr> <td>Size</td> <td>0</td> </tr>
-			<tr> <td>aTime</td> <td>21/03/19 23:41</td> </tr>
-			<tr> <td>cTime</td> <td>21/03/19 23:41</td> </tr>
-			<tr> <td>mTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>aTime</td> <td>25/03/19 01:38</td> </tr>
+			<tr> <td>cTime</td> <td>25/03/19 01:38</td> </tr>
+			<tr> <td>mTime</td> <td>25/03/19 01:38</td> </tr>
 			<tr> <td>Type</td> <td>0</td> </tr>
 			<tr> <td>Perm</td> <td>664</td> </tr>
 			<tr> <td>B1</td> <td PORT = "f0">2</td> </tr>
@@ -144,12 +144,12 @@ edge [fontname = "arial"];
 	in5 [shape=none, margin=0, label =<
 		<table border="0" cellborder="1" cellspacing="0" bgcolor="goldenrod1">
 			<tr> <td colspan = "2" PORT="p">Inode 5</td> </tr>
-			<tr> <td>UID</td> <td>0</td> </tr>
-			<tr> <td>GID</td> <td>0</td> </tr>
+			<tr> <td>UID</td> <td>1</td> </tr>
+			<tr> <td>GID</td> <td>1</td> </tr>
 			<tr> <td>Size</td> <td>0</td> </tr>
-			<tr> <td>aTime</td> <td>21/03/19 23:41</td> </tr>
-			<tr> <td>cTime</td> <td>21/03/19 23:41</td> </tr>
-			<tr> <td>mTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>aTime</td> <td>25/03/19 01:39</td> </tr>
+			<tr> <td>cTime</td> <td>25/03/19 01:39</td> </tr>
+			<tr> <td>mTime</td> <td>25/03/19 01:39</td> </tr>
 			<tr> <td>Type</td> <td>0</td> </tr>
 			<tr> <td>Perm</td> <td>664</td> </tr>
 			<tr> <td>B1</td> <td PORT = "f0">6</td> </tr>
@@ -181,12 +181,12 @@ edge [fontname = "arial"];
 	in6 [shape=none, margin=0, label =<
 		<table border="0" cellborder="1" cellspacing="0" bgcolor="greenyellow">
 			<tr> <td colspan = "2" PORT="p">Inode 6</td> </tr>
-			<tr> <td>UID</td> <td>0</td> </tr>
-			<tr> <td>GID</td> <td>0</td> </tr>
+			<tr> <td>UID</td> <td>1</td> </tr>
+			<tr> <td>GID</td> <td>1</td> </tr>
 			<tr> <td>Size</td> <td>512</td> </tr>
-			<tr> <td>aTime</td> <td>21/03/19 23:41</td> </tr>
-			<tr> <td>cTime</td> <td>21/03/19 23:41</td> </tr>
-			<tr> <td>mTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>aTime</td> <td>25/03/19 01:39</td> </tr>
+			<tr> <td>cTime</td> <td>25/03/19 01:39</td> </tr>
+			<tr> <td>mTime</td> <td>25/03/19 01:39</td> </tr>
 			<tr> <td>Type</td> <td>1</td> </tr>
 			<tr> <td>Perm</td> <td>664</td> </tr>
 			<tr> <td>B1</td> <td PORT = "f0">7</td> </tr>
@@ -268,12 +268,12 @@ edge [fontname = "arial"];
 	in7 [shape=none, margin=0, label =<
 		<table border="0" cellborder="1" cellspacing="0" bgcolor="goldenrod1">
 			<tr> <td colspan = "2" PORT="p">Inode 7</td> </tr>
-			<tr> <td>UID</td> <td>0</td> </tr>
-			<tr> <td>GID</td> <td>0</td> </tr>
+			<tr> <td>UID</td> <td>1</td> </tr>
+			<tr> <td>GID</td> <td>1</td> </tr>
 			<tr> <td>Size</td> <td>0</td> </tr>
-			<tr> <td>aTime</td> <td>21/03/19 23:41</td> </tr>
-			<tr> <td>cTime</td> <td>21/03/19 23:41</td> </tr>
-			<tr> <td>mTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>aTime</td> <td>25/03/19 01:39</td> </tr>
+			<tr> <td>cTime</td> <td>25/03/19 01:39</td> </tr>
+			<tr> <td>mTime</td> <td>25/03/19 01:39</td> </tr>
 			<tr> <td>Type</td> <td>0</td> </tr>
 			<tr> <td>Perm</td> <td>777</td> </tr>
 			<tr> <td>B1</td> <td PORT = "f0">15</td> </tr>
@@ -305,18 +305,18 @@ edge [fontname = "arial"];
 	in8 [shape=none, margin=0, label =<
 		<table border="0" cellborder="1" cellspacing="0" bgcolor="greenyellow">
 			<tr> <td colspan = "2" PORT="p">Inode 8</td> </tr>
-			<tr> <td>UID</td> <td>0</td> </tr>
-			<tr> <td>GID</td> <td>0</td> </tr>
-			<tr> <td>Size</td> <td>241</td> </tr>
-			<tr> <td>aTime</td> <td>21/03/19 23:41</td> </tr>
-			<tr> <td>cTime</td> <td>21/03/19 23:41</td> </tr>
-			<tr> <td>mTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>UID</td> <td>1</td> </tr>
+			<tr> <td>GID</td> <td>1</td> </tr>
+			<tr> <td>Size</td> <td>128</td> </tr>
+			<tr> <td>aTime</td> <td>25/03/19 01:39</td> </tr>
+			<tr> <td>cTime</td> <td>25/03/19 01:39</td> </tr>
+			<tr> <td>mTime</td> <td>25/03/19 01:39</td> </tr>
 			<tr> <td>Type</td> <td>1</td> </tr>
 			<tr> <td>Perm</td> <td>777</td> </tr>
 			<tr> <td>B1</td> <td PORT = "f0">16</td> </tr>
 			<tr> <td>B2</td> <td PORT = "f1">17</td> </tr>
-			<tr> <td>B3</td> <td PORT = "f2">18</td> </tr>
-			<tr> <td>B4</td> <td PORT = "f3">19</td> </tr>
+			<tr> <td>B3</td> <td PORT = "f2">-1</td> </tr>
+			<tr> <td>B4</td> <td PORT = "f3">-1</td> </tr>
 			<tr> <td>B5</td> <td PORT = "f4">-1</td> </tr>
 			<tr> <td>B6</td> <td PORT = "f5">-1</td> </tr>
 			<tr> <td>B7</td> <td PORT = "f6">-1</td> </tr>
@@ -333,34 +333,20 @@ edge [fontname = "arial"];
 	bl16 [shape=none, margin=0, label =<
 		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
 			<tr> <td colspan = "2" PORT="p">Block 16</td> </tr>
-			<tr> <td colspan = "2"> Hola me llamo sebastian y dark souls es el mejor videojuego de l </td> </tr>
+			<tr> <td colspan = "2"> Dark Souls es el videojuego mas influyente de todos los tiemposs </td> </tr>
 	</table> >];
 
 	in8:f0 -> bl16:p;
 	bl17 [shape=none, margin=0, label =<
 		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
 			<tr> <td colspan = "2" PORT="p">Block 17</td> </tr>
-			<tr> <td colspan = "2"> a historia.
-Hidetaka Miyazaki realizo
-esta obra maestra en 2011  </td> </tr>
+			<tr> <td colspan = "2"> .
+Sin duda el mejor.
+Mi mama me mima.
+Me odio y me quiero morir. </td> </tr>
 	</table> >];
 
 	in8:f1 -> bl17:p;
-	bl18 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
-			<tr> <td colspan = "2" PORT="p">Block 18</td> </tr>
-			<tr> <td colspan = "2"> y desde entonces creo 
-un videojuego que ha influido a miles de  </td> </tr>
-	</table> >];
-
-	in8:f2 -> bl18:p;
-	bl19 [shape=none, margin=0, label =<
-		<table border="0" cellborder="1" cellspacing="0" bgcolor="lightblue">
-			<tr> <td colspan = "2" PORT="p">Block 19</td> </tr>
-			<tr> <td colspan = "2"> creadores independientes y no tan independientes. </td> </tr>
-	</table> >];
-
-	in8:f3 -> bl19:p;
 	bl15:f2 -> in8:p;
 	in7:f0 -> bl15:p;
 	bl2:f3 -> in7:p;
@@ -379,12 +365,12 @@ un videojuego que ha influido a miles de  </td> </tr>
 	in3 [shape=none, margin=0, label =<
 		<table border="0" cellborder="1" cellspacing="0" bgcolor="goldenrod1">
 			<tr> <td colspan = "2" PORT="p">Inode 3</td> </tr>
-			<tr> <td>UID</td> <td>0</td> </tr>
-			<tr> <td>GID</td> <td>0</td> </tr>
+			<tr> <td>UID</td> <td>1</td> </tr>
+			<tr> <td>GID</td> <td>1</td> </tr>
 			<tr> <td>Size</td> <td>0</td> </tr>
-			<tr> <td>aTime</td> <td>21/03/19 23:41</td> </tr>
-			<tr> <td>cTime</td> <td>21/03/19 23:41</td> </tr>
-			<tr> <td>mTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>aTime</td> <td>25/03/19 01:38</td> </tr>
+			<tr> <td>cTime</td> <td>25/03/19 01:38</td> </tr>
+			<tr> <td>mTime</td> <td>25/03/19 01:38</td> </tr>
 			<tr> <td>Type</td> <td>0</td> </tr>
 			<tr> <td>Perm</td> <td>664</td> </tr>
 			<tr> <td>B1</td> <td PORT = "f0">4</td> </tr>
@@ -418,12 +404,12 @@ un videojuego que ha influido a miles de  </td> </tr>
 	in4 [shape=none, margin=0, label =<
 		<table border="0" cellborder="1" cellspacing="0" bgcolor="goldenrod1">
 			<tr> <td colspan = "2" PORT="p">Inode 4</td> </tr>
-			<tr> <td>UID</td> <td>0</td> </tr>
-			<tr> <td>GID</td> <td>0</td> </tr>
+			<tr> <td>UID</td> <td>1</td> </tr>
+			<tr> <td>GID</td> <td>1</td> </tr>
 			<tr> <td>Size</td> <td>0</td> </tr>
-			<tr> <td>aTime</td> <td>21/03/19 23:41</td> </tr>
-			<tr> <td>cTime</td> <td>21/03/19 23:41</td> </tr>
-			<tr> <td>mTime</td> <td>21/03/19 23:41</td> </tr>
+			<tr> <td>aTime</td> <td>25/03/19 01:38</td> </tr>
+			<tr> <td>cTime</td> <td>25/03/19 01:38</td> </tr>
+			<tr> <td>mTime</td> <td>25/03/19 01:38</td> </tr>
 			<tr> <td>Type</td> <td>0</td> </tr>
 			<tr> <td>Perm</td> <td>664</td> </tr>
 			<tr> <td>B1</td> <td PORT = "f0">5</td> </tr>
