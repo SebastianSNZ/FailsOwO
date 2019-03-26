@@ -122,7 +122,7 @@ void mountPartition(char path[], char name[]);
 void deletePartitionNode(PartitionNode **aux, char id[]);
 void unMountPartition(char id[]);
 void getDirectory(char text[]);
-void report(char id[], char path[], char name[]);
+void report(char id[], char path[], char name[], char file[]);
 void reportDisk(char filePath[], char destiny[]);
 void reportMbr(char filePath[], char destiny[]);
 
@@ -908,31 +908,6 @@ void unMountPartition(char id[])
     p = partList;
 }
 
-void report(char id[], char path[], char name[])
-{
-    if (id[0] == '\0' || path[0] == '\0' || name[0] == '\0')
-    {
-        printf("Error, parametros incorrectos.\n");
-        return;
-    }
-    PartitionNode *result = getPartitionNode(partList, id);
-    if (!result)
-    {
-        printf("Error, particion %s no se encuentra montada.\n", id);
-        return;
-    }
-    char diskPath[512] = {0};
-    strcpy(diskPath, result->filePtr->path);
-    if (!strncasecmp(name, "disk", 4))
-    {
-        reportDisk(diskPath, path);
-    }
-    else if (!strncasecmp(name, "mbr", 3))
-    {
-        reportMbr(diskPath, path);
-    }
-}
-
 void reportDisk(char filePath[], char destiny[])
 {
     char dir[512] = {0};
@@ -1265,13 +1240,85 @@ void writeUserFile(SuperBlock *sb, FILE *disk, char *cont, int size);
 void deleteGroup();
 Inode newInode();
 FolderBlock newFolderBlock();
-void loginUser(char name[], char grp[], char pass[], char id[]);
-int getUserInfo(char *cont, char name[], char grp[], char pass[], int *uid, int *gid);
+void loginUser(char name[], char pass[], char id[]);
+int getUserInfo(char *cont, char name[], char pass[], int *uid, int *gid);
 void logout();
 User currentUser;
 void pauseThread();
 Journal getNewJournal(char content[], char type, char name[], char operation, int owner, int perm, int father);
 void writeInJournal(SuperBlock *sb, FILE *disk, char content[], int size, char type, char name[], char operation, int owner, int perm, int father);
+
+
+void report(char id[], char path[], char name[], char file[])
+{
+    if (id[0] == '\0' || path[0] == '\0' || name[0] == '\0')
+    {
+        printf("Error, parametros incorrectos.\n");
+        return;
+    }
+    PartitionNode *result = getPartitionNode(partList, id);
+    if (!result)
+    {
+        printf("Error, particion %s no se encuentra montada.\n", id);
+        return;
+    }
+    char diskPath[512] = {0};
+    strcpy(diskPath, result->filePtr->path);
+    if (!strncasecmp(name, "disk", 4))
+    {
+        reportDisk(diskPath, path);
+    }
+    else if (!strncasecmp(name, "mbr", 3))
+    {
+        reportMbr(diskPath, path);
+    }
+    else if (!strcasecmp(name, "file")) {
+        fileReport(result, file, path);
+    }
+    else {
+        char dir[512] = {0};
+        char command[512] = {0};
+        strcpy(dir, path);
+        getDirectory(dir);
+        strcat(command, "mkdir -p -m a=rwx ");
+        strcat(command, dir);
+        system(command);
+        char dest[256] = {0};
+        if (!strcasecmp(name, "bm_inode"))
+        {
+            bitmapInodeReport(result, path);
+            return;
+        }
+        else if (!strcasecmp(name, "bm_block")) {
+            bitmapBlockReport(result, path);
+            return;
+        }
+        else if (!strcasecmp(name, "inode")) {
+            listInodeReport(result);
+            strcpy(dest, "inode_list.dot");
+        }
+        else if (!strcasecmp(name, "block")) {
+            listBlockReport(result);
+            strcpy(dest, "block_list.dot");
+        }
+        else if (!strcasecmp(name, "sb")) {
+            superBlockReport(result);
+            strcpy(dest, "superblock.dot");
+        }
+        else if (!strcasecmp(name, "tree")) {
+            treeReport(result);
+            strcpy(dest, "tree.dot");
+        }
+        char com[512] = {0};
+        strcpy(com, "dot ");
+        strcat(com, dest);
+        strcat(com, " -o ");
+        strcat(com, path);
+        strcat(com, " -Tpng");
+        system(com);
+    }
+
+}
 
 
 void makeFileSystem(char id[], char type[], char fs[])
@@ -1343,7 +1390,7 @@ void prueba(char path[], PartitionNode *node)
     fseek(disk, node->start, SEEK_SET);
     fwrite(&sb, sizeof(SuperBlock), 1, disk);
     fclose(disk);*/
-    loginUser("root", "root", "123", "vda1");
+    loginUser("root", "123", "vda1");
     makeNewDirectory("/home/", 1, 664, node);
     makeNewDirectory("/dev/", 1, 664, node);
     makeNewDirectory("/bin/", 1, 664, node);
@@ -1356,7 +1403,7 @@ void prueba(char path[], PartitionNode *node)
     makeUser("hola", "tuchez", "nacho", node);
     makeGroup("familia", node);
     logout();
-    loginUser("sebas", "hola", "nacho", "vda1");
+    loginUser("sebas", "nacho", "vda1");
     bitmapInodeReport(node, "/home/sebastian/Documentos/bmInode.txt");
     bitmapBlockReport(node, "/home/sebastian/Documentos/bmBlock.txt");
     listInodeReport(node);
@@ -1370,7 +1417,7 @@ void prueba(char path[], PartitionNode *node)
 }
 
 
-void loginUser(char name[], char grp[], char pass[], char id[])
+void loginUser(char name[], char pass[], char id[])
 {
     if (!currentUser.nullUser)
     {
@@ -1391,7 +1438,7 @@ void loginUser(char name[], char grp[], char pass[], char id[])
     int uid = 0;
     int gid = 0;
     char *content = getUserValue(&sb, disk, 1, &size);
-    if (!getUserInfo(content, name, grp, pass, &uid, &gid))
+    if (!getUserInfo(content, name, pass, &uid, &gid))
     {
         free(content);
         fclose(disk);
@@ -1402,21 +1449,19 @@ void loginUser(char name[], char grp[], char pass[], char id[])
     currentUser.pNode = node;
     currentUser.gid = gid;
     currentUser.uid = uid;
-    currentUser.rootUser = !strcasecmp(name, "root") && !strcasecmp(grp, "root") ? 1 : 0;
+    currentUser.rootUser = strcasecmp(name, "root") ? 0 : 1;
     free(content);
     fclose(disk);
 }
 
 
 
-int getUserInfo(char *cont, char name[], char grp[], char pass[], int *uid, int *gid)
+int getUserInfo(char *cont, char name[], char pass[], int *uid, int *gid)
 {
     char text[1024] = {0};
     strcpy(text, cont);
-    char newGroup[11] = {0};
-    strcpy(newGroup, grp);
-    for (int k = 0; k < 10; k++)
-        if (newGroup[k] == 0) newGroup[k] = ' ';
+    char text2[1024] = {0};
+    strcpy(text2, cont);
     char newName[11] = {0};
     strcpy(newName, name);
     for (int k = 0; k < 10; k++)
@@ -1428,30 +1473,36 @@ int getUserInfo(char *cont, char name[], char grp[], char pass[], int *uid, int 
     char *lineToken = strtok(text, "\n");
     int gNumber = -1;
     int uNumber = -1;
+    char groupValue[11] = {0};
     for(;lineToken != NULL; lineToken = strtok(NULL, "\n"))
     {
         int number = lineToken[0] - '0';
         if (number == 0) continue;
         char type = lineToken[2];
-        if (type == 'G')
-        {
-            char nameValue[11] = {0};
-            strncpy(nameValue, lineToken + 4, 10);
-            if (!strcasecmp(nameValue, newGroup))
-            {
-                gNumber = number;
-            }
-            continue;
-        }
-        char groupValue[11] = {0};
+        if (type == 'G') continue;
         strncpy(groupValue, lineToken + 4, 10);
         char nameValue[11] = {0};
         strncpy(nameValue, lineToken + 15, 10);
         char passValue[11] = {0};
         strncpy(passValue, lineToken + 26, 10);
-        if(!strcasecmp(groupValue, newGroup) && !strcasecmp(nameValue, newName) && !strcasecmp(passValue, newPass))
+        if(!strcasecmp(nameValue, newName) && !strcasecmp(passValue, newPass))
         {
             uNumber = number;
+            break;
+        }
+    }
+    lineToken = strtok(text2, "\n");
+    for(;lineToken != NULL; lineToken = strtok(NULL, "\n"))
+    {
+        int number = lineToken[0] - '0';
+        if (number == 0) continue;
+        char type = lineToken[2];
+        if (type == 'U') continue;
+        char nameValue[11] = {0};
+        strncpy(nameValue, lineToken + 4, 10);
+        if (!strcasecmp(nameValue, groupValue))
+        {
+            gNumber = number;
             break;
         }
     }
@@ -1459,8 +1510,8 @@ int getUserInfo(char *cont, char name[], char grp[], char pass[], int *uid, int 
     {
         return 0;
     }
-    *gid = gNumber;
     *uid = uNumber;
+    *gid = gNumber;
     return 1;
 }
 
@@ -1472,6 +1523,7 @@ void logout()
         return;
     }
     currentUser.nullUser = 1;
+    currentUser.pNode = NULL;
 }
 
 
@@ -1501,6 +1553,14 @@ char *getUserValue(SuperBlock *sb, FILE *disk, int offset, int *size)
 
 void makeGroup(char name[], PartitionNode *node)
 {
+    if (!node) {
+        printf("Error, no se ha iniciado sesión en ninguna partición.\n");
+        return;
+    }
+    if (!currentUser.rootUser) {
+        printf("Error, no puedes realizar esta acción en este momento.\n");
+        return;
+    }
     char newGroup[11] = {0};
     strcpy(newGroup, name);
     for (int k = 0; k < 10; k++)
@@ -1557,6 +1617,14 @@ void makeGroup(char name[], PartitionNode *node)
 
 void makeUser(char group[], char name[], char pass[], PartitionNode *node)
 {
+    if (!node) {
+        printf("Error, no se ha iniciado sesión en ninguna partición.\n");
+        return;
+    }
+    if (!currentUser.rootUser) {
+        printf("Error, no puedes realizar esta acción en este momento.\n");
+        return;
+    }
     char newGroup[11] = {0};
     strcpy(newGroup, group);
     for (int k = 0; k < 10; k++)
@@ -1600,7 +1668,7 @@ void makeUser(char group[], char name[], char pass[], PartitionNode *node)
         strncpy(groupValue, lineToken + 4, 10);
         char nameValue[11] = {0};
         strncpy(nameValue, lineToken + 15, 10);
-        if(!strcasecmp(groupValue, newGroup) && !strcasecmp(nameValue, newName))
+        if(!strcasecmp(nameValue, newName))
         {
             doit = 0;
             break;
@@ -1707,7 +1775,7 @@ void makeExt3(PartitionNode *node, char path[], int n)
     fwrite(&j, sizeof(Journal), 1, disk);
     fclose(disk);
     makeNewFile("/users.txt", "start.txt", 0, 1, 000, node);
-    prueba(path, node);
+    //prueba(path, node);
 }
 
 void createFirstFolder(SuperBlock sb, FILE *disk)
@@ -2074,6 +2142,10 @@ int findItemInSystem(SuperBlock *sb, FILE *disk, StringList *list, int address)
 
 void makeNewDirectory(char path[], int p, int perm, PartitionNode *node)
 {
+    if (!node) {
+        printf("Error, no hay ninguna sesion iniciada.\n");
+        return;
+    }
     if (path[0] == 0)
     {
         printf("Error, el parametro _path_ se encuentra vacio.\n");
@@ -2093,7 +2165,10 @@ void makeNewDirectory(char path[], int p, int perm, PartitionNode *node)
 
 void makeNewFile(char path[], char content[], int size, int p, int perm, PartitionNode *node)
 {
-
+    if (!node) {
+        printf("Error, no hay ninguna sesion iniciada.\n");
+        return;
+    }
     if (path[0] == 0)
     {
         printf("Error, el parametro _path_ se encuentra vacio.\n");

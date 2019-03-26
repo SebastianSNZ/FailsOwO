@@ -36,6 +36,12 @@ struct function
     char add[512];
     char id[512];
     char fs[512];
+    char file[512];
+    int p;
+    char usr[512];
+    char pwd[512];
+    char grp[512];
+    char cont[512];
     int errorParameter;
 };
 
@@ -113,7 +119,7 @@ void execFunction(Function func)
     }
     if (!strncasecmp(func.title, "rep", 3))
     {
-        report(func.id, func.path, func.name);
+        report(func.id, func.path, func.name, func.file);
         return;
     }
     if (!strncasecmp(func.title, "exec", 4))
@@ -121,10 +127,38 @@ void execFunction(Function func)
         execFile(func.path);
         return;
     }
-    if (!strncasecmp(func.title, "mkfs", 4))
+    if (!strcasecmp(func.title, "mkfs"))
     {
         makeFileSystem(func.id, func.type, func.fs);
         return;
+    }
+    if (!strcasecmp(func.title, "pause"))
+    {
+        pauseThread();
+        return;
+    }
+    if (!strcasecmp(func.title, "login")){
+        loginUser(func.usr, func.pwd, func.id);
+        return;
+    }
+    if (!strcasecmp(func.title, "logout")){
+        logout();
+        return;
+    }
+    if (!strcasecmp(func.title, "mkusr")) {
+        makeUser(func.grp, func.usr, func.pwd, currentUser.pNode);
+        return;
+    }
+    if (!strcasecmp(func.title, "mkgrp")) {
+        makeGroup(func.name, currentUser.pNode);
+        return;
+    }
+    if (!strcasecmp(func.title, "mkfile")) {
+        makeNewFile(func.path, func.cont, getInt(func.size), func.p, 664, currentUser.pNode);
+        return;
+    }
+    if (!strcasecmp(func.title, "mkdir")) {
+        makeNewDirectory(func.path, func.p, 664, currentUser.pNode);
     }
     if (func.title[0] == '\0')
     {
@@ -218,16 +252,22 @@ Function getNewFunction(ParameterList *list)
     ParameterDuo *aux = list->firstValue;
     while(aux != NULL)
     {
-        if (!strncasecmp(aux->parameterName, "size", 4)) strcpy(func.size, aux->parameterValue);
-        else if (!strncasecmp(aux->parameterName, "fit", 3)) strcpy(func.fit, aux->parameterValue);
-        else if (!strncasecmp(aux->parameterName, "unit", 4)) strcpy(func.unit, aux->parameterValue);
-        else if (!strncasecmp(aux->parameterName, "path", 4)) strcpy(func.path, aux->parameterValue);
-        else if (!strncasecmp(aux->parameterName, "type", 4)) strcpy(func.type, aux->parameterValue);
-        else if (!strncasecmp(aux->parameterName, "delete", 6)) strcpy(func.delete, aux->parameterValue);
-        else if (!strncasecmp(aux->parameterName, "name", 4)) strcpy(func.name, aux->parameterValue);
-        else if (!strncasecmp(aux->parameterName, "add", 3)) strcpy(func.add, aux->parameterValue);
-        else if (!strncasecmp(aux->parameterName, "id", 2)) strcpy(func.id, aux->parameterValue);
-        else if (!strncasecmp(aux->parameterName, "fs", 2)) strcpy(func.fs, aux->parameterValue);
+        if (!strcasecmp(aux->parameterName, "size")) strcpy(func.size, aux->parameterValue);
+        else if (!strcasecmp(aux->parameterName, "fit")) strcpy(func.fit, aux->parameterValue);
+        else if (!strcasecmp(aux->parameterName, "unit")) strcpy(func.unit, aux->parameterValue);
+        else if (!strcasecmp(aux->parameterName, "path")) strcpy(func.path, aux->parameterValue);
+        else if (!strcasecmp(aux->parameterName, "type")) strcpy(func.type, aux->parameterValue);
+        else if (!strcasecmp(aux->parameterName, "delete")) strcpy(func.delete, aux->parameterValue);
+        else if (!strcasecmp(aux->parameterName, "name")) strcpy(func.name, aux->parameterValue);
+        else if (!strcasecmp(aux->parameterName, "add")) strcpy(func.add, aux->parameterValue);
+        else if (!strcasecmp(aux->parameterName, "id")) strcpy(func.id, aux->parameterValue);
+        else if (!strcasecmp(aux->parameterName, "fs")) strcpy(func.fs, aux->parameterValue);
+        else if (!strcasecmp(aux->parameterName, "p")) func.p = 1;
+        else if (!strcasecmp(aux->parameterName, "usr")) strcpy(func.usr, aux->parameterValue);
+        else if (!strcasecmp(aux->parameterName, "pwd")) strcpy(func.pwd, aux->parameterValue);
+        else if (!strcasecmp(aux->parameterName, "grp")) strcpy(func.grp, aux->parameterValue);
+        else if (!strcasecmp(aux->parameterName, "cont")) strcpy(func.cont, aux->parameterValue);
+        else if (!strcasecmp(aux->parameterName, "file")) strcpy(func.file, aux->parameterValue);
         else if ((aux->parameterName)[0] == '#');
         else
         {
@@ -253,6 +293,12 @@ Function getFunction()
     strcpy(fun.add, "");
     strcpy(fun.id, "");
     strcpy(fun.fs, "");
+    strcpy(fun.file, "");
+    strcpy(fun.usr, "");
+    strcpy(fun.pwd, "");
+    strcpy(fun.grp, "");
+    strcpy(fun.cont, "");
+    fun.p = 0;
     fun.errorParameter = 0;
     return fun;
 }

@@ -62,8 +62,8 @@ edge [fontname = "arial"];
 			<tr> <td colspan = "2" PORT="p">Block 2</td> </tr>
 			<tr> <td>.</td> <td>2</td> </tr>
 			<tr> <td>..</td> <td>0</td> </tr>
-			<tr> <td>ayuda</td> <td>5</td> </tr>
-			<tr> <td>coso</td> <td>7</td> </tr>
+			<tr> <td>help</td> <td>5</td> </tr>
+			<tr> <td>thing</td> <td>7</td> </tr>
 	</table> >];
 
 	bl20 -> bl2;
