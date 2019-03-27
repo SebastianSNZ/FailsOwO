@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <ctype.h>
 
 //STRUCTS IMPORTANTES
 
@@ -1168,6 +1169,7 @@ struct JOURNALING
     char content[128];
     char date[16];
     int owner;
+    int group;
     int perm;
     int next;
     int father;
@@ -1210,7 +1212,7 @@ void writeBlock(SuperBlock *sb, FILE *disk, void *block, int index);
 void writeInode(SuperBlock *sb, FILE *disk, Inode *inode, int index);
 void writeInBlockBitmap(SuperBlock *sb, FILE *disk, char value, int index);
 void writeInInodeBitmap(SuperBlock *sb, FILE *disk, char value, int index);
-int addNewItem(SuperBlock *sb, FILE *disk, int father, char name[], int perm, char content[], int size, int type);
+int addNewItem(SuperBlock *sb, FILE *disk, int father, char name[], int perm, char content[], int size, int type, int flag);
 int addNewItemByLevel(SuperBlock *sb, FILE *disk, int direction, char name[], int father, int level, int perm, char content[], int size, int type);
 void createFolder(SuperBlock *sb, FILE *disk, int index, int father, int perm);
 int createFile(SuperBlock *sb, FILE *disk, int index, int perm, int size, char path[]);
@@ -1229,6 +1231,7 @@ void treeReportFileBlock(SuperBlock *sb, FILE *disk, FILE *dot, int index);
 void treeReportFolderBlock(SuperBlock *sb, FILE *disk, FILE *dot, int index);
 void bitmapInodeReport(PartitionNode *node, char path[]);
 void bitmapBlockReport(PartitionNode *node, char path[]);
+void journalReport(PartitionNode *node);
 void listInodeReport(PartitionNode *node);
 void listBlockReport(PartitionNode *node);
 void superBlockReport(PartitionNode *node);
@@ -1247,6 +1250,9 @@ User currentUser;
 void pauseThread();
 Journal getNewJournal(char content[], char type, char name[], char operation, int owner, int perm, int father);
 void writeInJournal(SuperBlock *sb, FILE *disk, char content[], int size, char type, char name[], char operation, int owner, int perm, int father);
+void gettingLossed(char id[]);
+void recoverDisk(char id[]);
+void convertEXT(char id[]);
 
 
 void report(char id[], char path[], char name[], char file[])
@@ -1308,6 +1314,10 @@ void report(char id[], char path[], char name[], char file[])
         else if (!strcasecmp(name, "tree")) {
             treeReport(result);
             strcpy(dest, "tree.dot");
+        }
+        else if (!strcasecmp(name, "journaling")) {
+            journalReport(result);
+            strcpy(dest, "journal.dot");
         }
         char com[512] = {0};
         strcpy(com, "dot ");
@@ -1378,42 +1388,6 @@ void makeExt2(PartitionNode *node, char path[], int n)
     createFirstFolder(sb, disk);
     fclose(disk);
     makeNewFile("/users.txt", "start.txt", 0, 1, 000, node);
-}
-
-void prueba(char path[], PartitionNode *node)
-{
-    /*SuperBlock sb;
-    FILE *disk = fopen(path, "rb+");
-    fseek(disk, node->start, SEEK_SET);
-    fread(&sb, sizeof(SuperBlock), 1, disk);
-    int a = addNewFolder(&sb, disk, 0, "home", 777);
-    fseek(disk, node->start, SEEK_SET);
-    fwrite(&sb, sizeof(SuperBlock), 1, disk);
-    fclose(disk);*/
-    loginUser("root", "123", "vda1");
-    makeNewDirectory("/home/", 1, 664, node);
-    makeNewDirectory("/dev/", 1, 664, node);
-    makeNewDirectory("/bin/", 1, 664, node);
-    makeNewDirectory("/home/", 1, 664, node);
-    makeNewFile("/home/ayuda/texto.txt", "", 512, 1, 664, node);
-    makeNewFile("/home/coso/texto.txt", "/home/sebastian/Documentos/Hola.txt", 0, 1, 777, node);
-    makeGroup("hola", node);
-    makeUser("hola", "sebas", "nacho", node);
-    makeUser("hola", "sanchez", "nacho", node);
-    makeUser("hola", "tuchez", "nacho", node);
-    makeGroup("familia", node);
-    logout();
-    loginUser("sebas", "nacho", "vda1");
-    bitmapInodeReport(node, "/home/sebastian/Documentos/bmInode.txt");
-    bitmapBlockReport(node, "/home/sebastian/Documentos/bmBlock.txt");
-    listInodeReport(node);
-    listBlockReport(node);
-    superBlockReport(node);
-    pauseThread();
-    fileReport(node, "/home/ayuda/texto.txt", "/home/sebastian/Documentos/archivinho.txt");
-    fileReport(node, "/home/coso/texto.txt", "/home/sebastian/Documentos/archivinho2.txt");
-    treeReport(node);
-    fileReport(node, "/users.txt", "/home/sebastian/Documentos/archivinho3.txt");
 }
 
 
@@ -1743,6 +1717,193 @@ void writeUserFile(SuperBlock *sb, FILE *disk, char *cont, int size)
     writeInode(sb, disk, &inode, 1);
 }
 
+void gettingLossed(char id[])
+{
+    PartitionNode *node = getPartitionNode(partList, id);
+    if (!node)
+    {
+        printf("Error, la particion %s no se encuentra montada.\n", id);
+        return;
+    }
+    FILE *diskFile = fopen(node->filePtr->path, "rb+");
+    if (!diskFile) return;
+    SuperBlock sb;
+    fseek(diskFile, node->start, SEEK_SET);
+    fread(&sb, sizeof(SuperBlock), 1, diskFile);
+    if (sb.type != 3) {
+        printf("Error, no puede simularse la perdida de esta particion.\n");
+        fclose(diskFile);
+        return;
+    }
+    int n = getInode3Number(node->size);
+    sb.inodesCount = n;
+    sb.blocksCount = 3 * n;
+    sb.freeInodesCount = n - 1;
+    sb.freeBlockCount = 3 * n - 1;
+    sb.firstInode = 1;
+    sb.firstBlock = 1;
+    fseek(diskFile, node->start, SEEK_SET);
+    fwrite(&sb, sizeof(SuperBlock), 1, diskFile);
+    int first = sb.bmInodeStart;
+    int last = node->start + node->size;
+    char zero[1024] = {0};
+    for (int i = first; i < last; i += 1024)
+    {
+        fseek(diskFile, i, SEEK_SET);
+        fwrite(zero, sizeof(char) * 1024, 1, diskFile);
+    }
+    createFirstFolder(sb, diskFile);
+    fclose(diskFile);
+    int flag = currentUser.nullUser;
+    if (!flag) currentUser.nullUser = 1;
+    makeNewFile("/users.txt", "start.txt", 0, 1, 000, node);
+    if (!flag) currentUser.nullUser = 0;
+}
+
+void recoverDisk(char id[])
+{
+    PartitionNode *node = getPartitionNode(partList, id);
+    if (!node)
+    {
+        printf("Error, la particion %s no se encuentra montada.\n", id);
+        return;
+    }
+    FILE *diskFile = fopen(node->filePtr->path, "rb+");
+    if (!diskFile) return;
+    SuperBlock sb;
+    fseek(diskFile, node->start, SEEK_SET);
+    fread(&sb, sizeof(SuperBlock), 1, diskFile);
+    if (sb.type != 3) {
+        printf("Error, no puede recuperarse esta esta particion.\n");
+        fclose(diskFile);
+        return;
+    }
+    Journal aux;
+    fseek(diskFile, node->start + sizeof(SuperBlock), SEEK_SET);
+    fread(&aux, sizeof(Journal), 1, diskFile);
+    while (aux.next != -1) {
+        fseek(diskFile, aux.next, SEEK_SET);
+        fread(&aux, sizeof(Journal), 1, diskFile);
+        int size = 0;
+        char cont[128] = {0};
+        if (isdigit(aux.content[0]) && aux.type) {
+            size = atoi(aux.content);
+        }
+        else if (aux.type) {
+            strcpy(cont, aux.content);
+        }
+        int add = addNewItem(&sb, diskFile, aux.father, aux.name, aux.perm, cont, size, aux.type, 0);
+        Inode inode;
+        int sek = getInodeAddressByIndex(&sb, add);
+        fseek(diskFile, sek, SEEK_SET);
+        fread(&inode, sizeof(Inode), 1, diskFile);
+        inode.uid = aux.owner;
+        inode.gid = aux.group;
+        fseek(diskFile, sek, SEEK_SET);
+        fwrite(&inode, sizeof(Inode), 1, diskFile);
+    }
+    fseek(diskFile, node->start, SEEK_SET);
+    fwrite(&sb, sizeof(SuperBlock), 1, diskFile);
+    fclose(diskFile);
+}
+
+void convertEXT(char id[])
+{
+    PartitionNode *node = getPartitionNode(partList, id);
+    if (!node)
+    {
+        printf("Error, la particion %s no se encuentra montada.\n", id);
+        return;
+    }
+    FILE *diskFile = fopen(node->filePtr->path, "rb+");
+    if (!diskFile) return;
+    SuperBlock sb;
+    fseek(diskFile, node->start, SEEK_SET);
+    fread(&sb, sizeof(SuperBlock), 1, diskFile);
+    if (sb.type != 2) {
+        printf("Error, no puede convertirse esta particion.\n");
+        fclose(diskFile);
+        return;
+    }
+    sb.type = 3;
+    int n = getInode3Number(node->size);
+    int newInodeCount = n;
+    int newBlockCount = 3 * n;
+    int newFreeInode = newInodeCount - (sb.inodesCount - sb.freeInodesCount);
+    int newFreeBlock = newBlockCount - (sb.blocksCount - sb.freeBlockCount);
+    int newBmInodeStart = node->start + sizeof(SuperBlock) + sizeof(Journal) * n;
+    int newBmBlockStart = newBmInodeStart + n;
+    int newInodeStart = newBmBlockStart + 3 * n;
+    int newBlockStart = newInodeStart + sizeof(Inode) * n;
+    int lastInode = n - 1;
+    int lastBlock = 3 * n - 1;
+    int finaln = -1;
+    int startn = -1;
+    int finalo = -1;
+    finaln = newBlockStart + 3 * n * sizeof(FileBlock) - (sizeof(FileBlock));
+    startn = newBlockStart;
+    finalo = getBlockAddressByIndex(&sb, lastBlock);
+    int j = finalo;
+    for (int i = finaln; i >= startn; i -= sizeof(FileBlock), j -= sizeof(FileBlock))
+    {
+        FileBlock origin;
+        fseek(diskFile, j, SEEK_SET);
+        fread(&origin, sizeof(FileBlock), 1, diskFile);
+        fseek(diskFile, i, SEEK_SET);
+        fwrite(&origin, sizeof(FileBlock), 1, diskFile);
+    }
+    finaln = newBlockStart - (sizeof(Inode));
+    startn = newInodeStart;
+    finalo = getInodeAddressByIndex(&sb, lastInode);
+    j = finalo;
+    for (int i = finaln; i >= startn; i -= sizeof(Inode), j -= sizeof(Inode))
+    {
+        Inode origin;
+        fseek(diskFile, j, SEEK_SET);
+        fread(&origin, sizeof(Inode), 1, diskFile);
+        fseek(diskFile, i, SEEK_SET);
+        fwrite(&origin, sizeof(Inode), 1, diskFile);
+    }
+    finaln = newInodeStart - 1;
+    startn = newBmBlockStart;
+    finalo = sb.bmBlockStart + lastBlock;
+    j = finalo;
+    for (int i = finaln; i >= startn; i--, j--)
+    {
+        char origin;
+        fseek(diskFile, j, SEEK_SET);
+        fread(&origin, sizeof(char), 1, diskFile);
+        fseek(diskFile, i, SEEK_SET);
+        fwrite(&origin, sizeof(char), 1, diskFile);
+    }
+    finaln = newBmBlockStart - 1;
+    startn = newBmInodeStart;
+    finalo = sb.bmInodeStart + lastInode;
+    j = finalo;
+    for (int i = finaln; i >= startn; i--, j--)
+    {
+        char origin;
+        fseek(diskFile, j, SEEK_SET);
+        fread(&origin, sizeof(char), 1, diskFile);
+        fseek(diskFile, i, SEEK_SET);
+        fwrite(&origin, sizeof(char), 1, diskFile);
+    }
+    sb.blocksCount = newBlockCount;
+    sb.inodesCount = newInodeCount;
+    sb.freeInodesCount = newFreeInode;
+    sb.freeBlockCount = newFreeBlock;
+    sb.bmInodeStart = newBmInodeStart;
+    sb.bmBlockStart = newBmBlockStart;
+    sb.inodeStart = newInodeStart;
+    sb.blockStart = newBlockStart;
+    fseek(diskFile, node->start, SEEK_SET);
+    fwrite(&sb, sizeof(SuperBlock), 1, diskFile);
+    Journal jour = getNewJournal("0", 0, "#START", 0, 0, 0, 0);
+    fseek(diskFile, node->start + sizeof(SuperBlock), SEEK_SET);
+    fwrite(&jour, sizeof(Journal), 1, diskFile);
+    fclose(diskFile);
+}
+
 void makeExt3(PartitionNode *node, char path[], int n)
 {
     SuperBlock sb;
@@ -1775,7 +1936,6 @@ void makeExt3(PartitionNode *node, char path[], int n)
     fwrite(&j, sizeof(Journal), 1, disk);
     fclose(disk);
     makeNewFile("/users.txt", "start.txt", 0, 1, 000, node);
-    //prueba(path, node);
 }
 
 void createFirstFolder(SuperBlock sb, FILE *disk)
@@ -2001,12 +2161,15 @@ void writeInJournal(SuperBlock *sb, FILE *disk, char content[], int size, char t
 {
     if (sb->type != 3) return;
     if (currentUser.nullUser) return;
+    size = size * type;
     char newContent[128] = {0};
-    if (content[0] == 0) sprintf(newContent, "%i", size);
+    if (!type) strcpy(newContent, "");
+    else if (content[0] == 0) sprintf(newContent, "%i", size);
     else strcpy(newContent, content);
     int start = currentUser.pNode->start + sizeof(SuperBlock);
     Journal journal;
     Journal newJournal = getNewJournal(newContent, type, name, operation, owner, perm, father);
+    newJournal.group = currentUser.gid;
     fseek(disk, start, SEEK_SET);
     fread(&journal, sizeof(Journal), 1, disk);
     while (journal.next != -1)
@@ -2022,7 +2185,7 @@ void writeInJournal(SuperBlock *sb, FILE *disk, char content[], int size, char t
     fwrite(&newJournal, sizeof(Journal), 1, disk);
 }
 
-int addNewItem(SuperBlock *sb, FILE *disk, int father, char name[], int perm, char content[], int size, int type)
+int addNewItem(SuperBlock *sb, FILE *disk, int father, char name[], int perm, char content[], int size, int type, int flag)
 {
     int adrs = getInodeAddressByIndex(sb, father);
     Inode in;
@@ -2030,7 +2193,7 @@ int addNewItem(SuperBlock *sb, FILE *disk, int father, char name[], int perm, ch
     fread(&in, sizeof(Inode), 1, disk);
     if (in.type != 0) return -1;
     //VERIFICAR PERMISOS
-    writeInJournal(sb, disk, content, size, type, name, 0, currentUser.uid, perm, father);
+    if (flag) writeInJournal(sb, disk, content, size, type, name, 0, currentUser.uid, perm, father);
     for (int i = 0; i < 15; i++)
     {
         int level = 0;
@@ -2117,10 +2280,10 @@ int makeNewItemInSystem(SuperBlock *sb, FILE *disk, StringList *list, int p, int
     {
         int val = searchInFolder(sb, disk, address, list->start->text);
         if (val != -1) return -1;
-        return addNewItem(sb, disk, address, list->start->text, perm, content, size, type);
+        return addNewItem(sb, disk, address, list->start->text, perm, content, size, type, 1);
     }
     int nextAddress = searchInFolder(sb, disk, address, list->start->text);
-    if (nextAddress < 0 && p) nextAddress = addNewItem(sb, disk, address, list->start->text, perm, content, size, 0);
+    if (nextAddress < 0 && p) nextAddress = addNewItem(sb, disk, address, list->start->text, perm, content, size, 0, 1);
     if (nextAddress < 0) return -1;
     popStringList(list);
     return makeNewItemInSystem(sb, disk, list, p, nextAddress, size, content, perm, type);
@@ -2609,6 +2772,8 @@ void listBlockReport(PartitionNode *node)
 }
 
 
+
+
 void superBlockReport(PartitionNode *node)
 {
     FILE *diskFile = fopen(node->filePtr->path, "rb+");
@@ -2640,6 +2805,7 @@ void superBlockReport(PartitionNode *node)
     fprintf(dot, "\t\t\t<tr> <td>Block BM Start</td> <td>%i</td> </tr>\n", sb.bmBlockStart);
     fprintf(dot, "\t\t\t<tr> <td>Inode Start</td> <td>%i</td> </tr>\n", sb.inodeStart);
     fprintf(dot, "\t\t\t<tr> <td>Block Start</td> <td>%i</td> </tr>\n", sb.blockStart);
+    fprintf(dot, "\t\t\t<tr> <td>Type</td> <td>%i</td> </tr>\n", sb.type);
     fprintf(dot, "\t</table> >];\n\n");
     fprintf(dot, "}\n");
     fclose(dot);
@@ -2696,4 +2862,54 @@ void fileReport(PartitionNode *partNode, char systemPath[], char destinyPath[])
     }
     fclose(diskFile);
     fclose(rep);
+}
+
+void journalReport(PartitionNode *node){
+    FILE *diskFile = fopen(node->filePtr->path, "rb+");
+    FILE *dot = fopen("journal.dot", "w");
+    fprintf(dot, "digraph g {\n");
+    fprintf(dot, "rankdir = LR;\n");
+    fprintf(dot, "graph [fontname = \"arial\"];\n");
+    fprintf(dot, "node [fontname = \"arial\"];\n");
+    fprintf(dot, "edge [fontname = \"arial\"];\n");
+    SuperBlock sb;
+    fseek(diskFile, node->start, SEEK_SET);
+    fread(&sb, sizeof(SuperBlock), 1, diskFile);
+    if (sb.type != 3)
+    {
+        fprintf(dot, "}\n");
+        fclose(dot);
+        fclose(diskFile);
+        return;
+    }
+    Journal aux;
+    fseek(diskFile, node->start + sizeof(SuperBlock), SEEK_SET);
+    fread(&aux, sizeof(Journal), 1, diskFile);
+    int p = -1;
+    while (aux.next != -1) {
+        int g = aux.next;
+        fseek(diskFile, aux.next, SEEK_SET);
+        fread(&aux, sizeof(Journal), 1, diskFile);
+        fprintf(dot, "\tjn%i [shape=none, margin=0, label =<\n", g);
+        fprintf(dot, "\t\t<table border=\"0\" cellborder=\"1\" cellspacing=\"0\">\n");
+        fprintf(dot, "\t\t\t<tr> <td colspan = \"2\">Journal</td> </tr>\n");
+        fprintf(dot, "\t\t\t<tr> <td>Type</td> <td>%i</td> </tr>\n", aux.type);
+        fprintf(dot, "\t\t\t<tr> <td>Name</td> <td>%s</td> </tr>\n", aux.name);
+        fprintf(dot, "\t\t\t<tr> <td>Content</td> <td>%s</td> </tr>\n", aux.content);
+        fprintf(dot, "\t\t\t<tr> <td>Date</td> <td>%s</td> </tr>\n", aux.date);
+        fprintf(dot, "\t\t\t<tr> <td>Owner</td> <td>%i</td> </tr>\n", aux.owner);
+        fprintf(dot, "\t\t\t<tr> <td>Group</td> <td>%i</td> </tr>\n", aux.group);
+        fprintf(dot, "\t\t\t<tr> <td>Perm</td> <td>%i</td> </tr>\n", aux.perm);
+        fprintf(dot, "\t\t\t<tr> <td>Father</td> <td>%i</td> </tr>\n", aux.father);
+        fprintf(dot, "\t\t\t<tr> <td>Next</td> <td>%i</td> </tr>\n", aux.next);
+        fprintf(dot, "\t</table> >];\n\n");
+        if (p != -1)
+        {
+            fprintf(dot, "\tjn%i -> jn%i;\n\n", p, g);
+        }
+        p = g;
+    }
+    fprintf(dot, "}\n");
+    fclose(dot);
+    fclose(diskFile);
 }

@@ -45,7 +45,7 @@ edge [fontname = "arial"];
 			<tr> <td colspan = "2">Block 19</td> </tr>
 			<tr> <td colspan = "2">  ,nacho     
 4,U,hola      ,tuchez    ,nacho     
-3,G,familia    </td> </tr>
+3,G,sekiro     </td> </tr>
 	</table> >];
 
 	bl18 -> bl19;

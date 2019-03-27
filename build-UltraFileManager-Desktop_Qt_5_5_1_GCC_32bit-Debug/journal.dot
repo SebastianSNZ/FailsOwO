@@ -1,0 +1,116 @@
+digraph g {
+rankdir = LR;
+graph [fontname = "arial"];
+node [fontname = "arial"];
+edge [fontname = "arial"];
+	jn1049004 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2">Journal</td> </tr>
+			<tr> <td>Type</td> <td>0</td> </tr>
+			<tr> <td>Name</td> <td>home</td> </tr>
+			<tr> <td>Content</td> <td></td> </tr>
+			<tr> <td>Date</td> <td>26/03/19 23:00</td> </tr>
+			<tr> <td>Owner</td> <td>1</td> </tr>
+			<tr> <td>Group</td> <td>1</td> </tr>
+			<tr> <td>Perm</td> <td>664</td> </tr>
+			<tr> <td>Father</td> <td>0</td> </tr>
+			<tr> <td>Next</td> <td>1049184</td> </tr>
+	</table> >];
+
+	jn1049184 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2">Journal</td> </tr>
+			<tr> <td>Type</td> <td>0</td> </tr>
+			<tr> <td>Name</td> <td>dev</td> </tr>
+			<tr> <td>Content</td> <td></td> </tr>
+			<tr> <td>Date</td> <td>26/03/19 23:00</td> </tr>
+			<tr> <td>Owner</td> <td>1</td> </tr>
+			<tr> <td>Group</td> <td>1</td> </tr>
+			<tr> <td>Perm</td> <td>664</td> </tr>
+			<tr> <td>Father</td> <td>0</td> </tr>
+			<tr> <td>Next</td> <td>1049364</td> </tr>
+	</table> >];
+
+	jn1049004 -> jn1049184;
+
+	jn1049364 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2">Journal</td> </tr>
+			<tr> <td>Type</td> <td>0</td> </tr>
+			<tr> <td>Name</td> <td>bin</td> </tr>
+			<tr> <td>Content</td> <td></td> </tr>
+			<tr> <td>Date</td> <td>26/03/19 23:00</td> </tr>
+			<tr> <td>Owner</td> <td>1</td> </tr>
+			<tr> <td>Group</td> <td>1</td> </tr>
+			<tr> <td>Perm</td> <td>664</td> </tr>
+			<tr> <td>Father</td> <td>0</td> </tr>
+			<tr> <td>Next</td> <td>1049544</td> </tr>
+	</table> >];
+
+	jn1049184 -> jn1049364;
+
+	jn1049544 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2">Journal</td> </tr>
+			<tr> <td>Type</td> <td>0</td> </tr>
+			<tr> <td>Name</td> <td>help</td> </tr>
+			<tr> <td>Content</td> <td></td> </tr>
+			<tr> <td>Date</td> <td>26/03/19 23:00</td> </tr>
+			<tr> <td>Owner</td> <td>1</td> </tr>
+			<tr> <td>Group</td> <td>1</td> </tr>
+			<tr> <td>Perm</td> <td>664</td> </tr>
+			<tr> <td>Father</td> <td>2</td> </tr>
+			<tr> <td>Next</td> <td>1049724</td> </tr>
+	</table> >];
+
+	jn1049364 -> jn1049544;
+
+	jn1049724 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2">Journal</td> </tr>
+			<tr> <td>Type</td> <td>1</td> </tr>
+			<tr> <td>Name</td> <td>texto.txt</td> </tr>
+			<tr> <td>Content</td> <td>512</td> </tr>
+			<tr> <td>Date</td> <td>26/03/19 23:00</td> </tr>
+			<tr> <td>Owner</td> <td>1</td> </tr>
+			<tr> <td>Group</td> <td>1</td> </tr>
+			<tr> <td>Perm</td> <td>664</td> </tr>
+			<tr> <td>Father</td> <td>5</td> </tr>
+			<tr> <td>Next</td> <td>1049904</td> </tr>
+	</table> >];
+
+	jn1049544 -> jn1049724;
+
+	jn1049904 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2">Journal</td> </tr>
+			<tr> <td>Type</td> <td>0</td> </tr>
+			<tr> <td>Name</td> <td>thing</td> </tr>
+			<tr> <td>Content</td> <td></td> </tr>
+			<tr> <td>Date</td> <td>26/03/19 23:00</td> </tr>
+			<tr> <td>Owner</td> <td>1</td> </tr>
+			<tr> <td>Group</td> <td>1</td> </tr>
+			<tr> <td>Perm</td> <td>664</td> </tr>
+			<tr> <td>Father</td> <td>2</td> </tr>
+			<tr> <td>Next</td> <td>1050084</td> </tr>
+	</table> >];
+
+	jn1049724 -> jn1049904;
+
+	jn1050084 [shape=none, margin=0, label =<
+		<table border="0" cellborder="1" cellspacing="0">
+			<tr> <td colspan = "2">Journal</td> </tr>
+			<tr> <td>Type</td> <td>1</td> </tr>
+			<tr> <td>Name</td> <td>texto.txt</td> </tr>
+			<tr> <td>Content</td> <td>/home/sebastian/Documentos/Hola.txt</td> </tr>
+			<tr> <td>Date</td> <td>26/03/19 23:00</td> </tr>
+			<tr> <td>Owner</td> <td>1</td> </tr>
+			<tr> <td>Group</td> <td>1</td> </tr>
+			<tr> <td>Perm</td> <td>664</td> </tr>
+			<tr> <td>Father</td> <td>7</td> </tr>
+			<tr> <td>Next</td> <td>-1</td> </tr>
+	</table> >];
+
+	jn1049904 -> jn1050084;
+
+}

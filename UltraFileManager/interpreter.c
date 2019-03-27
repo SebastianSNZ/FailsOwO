@@ -159,6 +159,19 @@ void execFunction(Function func)
     }
     if (!strcasecmp(func.title, "mkdir")) {
         makeNewDirectory(func.path, func.p, 664, currentUser.pNode);
+        return;
+    }
+    if (!strcasecmp(func.title, "loss")) {
+        gettingLossed(func.id);
+        return;
+    }
+    if (!strcasecmp(func.title, "recovery")) {
+        recoverDisk(func.id);
+        return;
+    }
+    if (!strcasecmp(func.title, "convert")) {
+        convertEXT(func.id);
+        return;
     }
     if (func.title[0] == '\0')
     {
@@ -385,7 +398,8 @@ Token getNextToken(char text[])
         {
         case 0:
             if(isalpha(text[currentPosition]) || isdigit(text[currentPosition])
-                    || text[currentPosition] == '/' || text[currentPosition] == '.')
+                    || text[currentPosition] == '/' || text[currentPosition] == '.'
+                    || text[currentPosition] == '_')
             {
                 currentStatus = 2;
                 addCharacter(lex, text[currentPosition]);
@@ -438,7 +452,8 @@ Token getNextToken(char text[])
             break;
         case 2:
             if (isalpha(text[currentPosition]) || isdigit(text[currentPosition])
-                    || text[currentPosition] == '/' || text[currentPosition] == '.')
+                    || text[currentPosition] == '/' || text[currentPosition] == '.'
+                    || text[currentPosition] == '_')
             {
                 currentStatus = 2;
                 addCharacter(lex, text[currentPosition]);
